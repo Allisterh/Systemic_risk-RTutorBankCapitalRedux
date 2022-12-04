@@ -2,11 +2,11 @@ Package: RTutorBankCapitalRedux
 Type: Package
 Title: RTutor problem set BankCapitalRedux
 Version: 0.1
-Date: 2022-04-12
+Date: 2022-05-12
 Author: Thanusaa Kanagasingam
-Maintainer: Thanusaa Kanagasingam <author@email.net>
+Maintainer: Thanusaa Kanagasingam <thanusaa.kanagasingam@uni-ulm.de>
 Description: RTutor problem set BankCapitalRedux
 License: Not yet licensed by the author. The default suggestion for licensing is
 	Problem set content: Creative Commons (CC BY-SA)
 	Package code: GPL >= 2.0
-Depends: RTutor
+Depends: RTutor, tidyverse, lfe, gridExtra, mfx, texreg, stargazer, glueformula, ggthemes, gplots, stats, pROC
