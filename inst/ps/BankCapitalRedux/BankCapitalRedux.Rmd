@@ -1,0 +1,2691 @@
+
+```{r 'check_ps', include=FALSE}
+
+user.name = ''
+```
+
+# An empirical analysis of the relationship between bank capital, the risk of a financial crisis and its severity
+
+Author:  Thanusaa Kanagasingam
+
+
+## Exercise Introduction
+
+Welcome to this interactive problem set which is part of my master thesis "An empirical analysis of the relationship between bank capital, the risk of a financial crisis and its severity" at the University Ulm.
+
+The Global Financial Crisis of 2008 was the most severe crisis that happened in the early 21st century which was triggered by the bursting of the real estate bubble. The peak of the Great Recession was the collapse of the major bank Lehman Brothers. Consequently, the international interdependence of banks led to a rapid spread of the crisis. A complete collapse of the markets could only be prevented via global intervention by governments and central banks *(Weber, 2010)*. 
+
+The financial crisis of 2008 revealed significant weaknesses in the financial regulation. One of the main reasons that the economic and financial crisis became so devastating was that excessive leverage had built up in the banking sectors of many countries. At the same time, many banks had insufficient liquidity buffers. Therefore, the representatives of the G20 countries decided to review the financial market regulation and agreed to introduce Basel III *(Weber, 2010)*. The main objectives of Basel III are to strengthen the resilience of banking systems to future financial market turbulence and to reduce the probability and severity of future financial crises. Thus, banks are being required to strengthen their capital structure and to provide additional capital buffers *(BIS, 2010)*. But do all these measures have the expected effect at all? 
+
+This interactive problem set is based on the main findings of the paper ["Bank Capital Redux: Solvency, Liquidity, and Crisis"](https://academic.oup.com/restud/article-abstract/88/1/260/5889963?redirectedFrom=fulltext&login=false) by *Òscar Jordà, Björn Richter, Moritz Schularick and Alan M. Taylor (2020)* which analyses the long-run evolution of the liability side of banks' balance sheets from 1870 to 2015 and its relationship to the risk of a financial crisis, and its severity. The article and the data can be found [here](https://academic.oup.com/restud/article-abstract/88/1/260/5889963?redirectedFrom=fulltext&login=false).
+
+The paper is divided into three parts: First, *Jordà et al.* explore the long-run evolution of the three balance sheet ratios *capital ratio, loan-to-deposits ratio and non-core ratio* by conducting descriptive analysis. They showed that the capital ratio has fallen dramatically since 1870 but has remained stable since 1950 at a low level. After the financial crisis in 2008, the capital ratio rose again. But how is the capital structure related to systemic financial instability? The authors analysed the correlations between the liability side of the capital structure and the financial crisis risk by estimating probit regressions and focusing on AUC statistics to evaluate the crisis predictive ability of the three bank balance sheet ratios for systemic financial crisis risk. The third part of the study investigates how the level of bank capital affects the severity of financial crises using the Local Projections method *(Jordà, 2005)*. 
+
+Hence, this problem set presents the main findings of paper which answer the following empirical question proposed by the authors:
+
+#### How is the capital structure related to systemic banking crisis risk and severity?
+
+Let's have a look at the structure of this problem set.
+
+
+### Content
+
+**1. Data overview**
+  
+**2. Long-run evolution of the capital structure**
+
+  2.1. Evolution of the capital ratio
+    
+  2.2. Evolution of the loan-to-deposits ratio
+    
+  2.3. Evolution of the total capital structure
+
+**3. Financial crises in 1870-2015**
+
+  3.1. Capital structure around financial crises
+  
+**4. Capital structure and crisis risk**
+
+  4.1. Model building
+  
+  4.2. Model estimation
+  
+  4.3. ROC & AUC
+  
+  4.4. Robustness checks
+  
+**5. Bank capital and the severity of a financial crisis**
+
+  5.1. Local Projection approach
+  
+  5.2. Model estimation
+  
+  5.3. Robustness checks
+  
+**6. Conclusion**
+
+**7. References**
+
+The problem set starts with an overview of the data, where we will look at the characteristics of the data set. Afterwards, we analyse the long-run evolution of the capital structure graphically. In exercise 3, we will learn about financial crises and examine the path of the capital structure around financial crises. After the descriptive analysis, we will present the main findings of the probit regressions performed by the authors to investigate the predictive ability for crisis risk. In exercise 5, we explore the relationship between the bank capital and the severity of financial crisis recessions. In the last chapter, we conclude the problem set.
+
+### Quick start guide
+
+You can solve every exercise independently but within an exercise you need to solve it in the correct order. Nevertheless, it is recommended to do the exercises one after the other to avoid knowledge gaps. Every exercise consists of a description part and a few code chunks you need to solve. 
+
+Every code chunk works as follows:
+
+<img src="Data/TutorialChunk1.png" style="width: 70%; height: 70%; border:0.1px solid grey">
+
+<img src="Data/TutorialChunk2.png" style="width: 70%; height: 70%; border:0.1px solid grey">
+
+First and foremost, you need to click on the **edit** button to solve the code chunk. If you can't solve a specific code chunk, you can use the **hint** button. But don’t worry if you can’t solve it. You also have the option to display the solution by using the **solution** button. Moreover, every chunk contains comments that will guide you through the task. By pressing on **check** you can verify your submission and collect your points to get awards. Another great feature is that you can explore your data set by clicking on the **data** button. 
+
+Well then, let the fun begin!
+
+## Exercise 1 Data overview
+
+Initially, the authors provide several data sets coming from different sources. The main data set is the so called [Jordà-Schularick-Taylor Macrohistory Database](https://www.macrohistory.net/database/), which has been an extensive data collection over 145 years. It covers 17 economies over a period of 1870-2015 on an annual basis and consists of 74 variables. Since this data set does not cover all balance sheet ratios, five additional data sets were needed such as data on liabilities, leverage, Baron/Xiong bank index excess returns and bank profits. Due to the extensive data preparation, I created the aggregated data set, named as *Bankdata.rds*, in advance to set our focus on the analyses.
+
+Before we start with the exercises, let's look at the most important categories and the corresponding variables of the data set provided by *Jordà et al.* to give you a quick overview of the data set:
+
+**Real Economy**: Nominal GDP (local currency), Real GDP per capita (PPP), Population, Unemployment Rate, Wages, ...
+
+**Government**: Government Revenue, Government Expenditure, Public Debt-to-GDP Ratio, ...
+
+**International**: Imports, Exports, ...
+
+**Money, Prices & Interest Rates**: Short-term Interest Rate, Consumer Prices, ...
+
+**Credit Data**: Total Loans to Households, Total Loans to Business, ...
+
+**Crisis Dates**: Systemic Financial Crisis (0-1 dummy)
+
+**Rates of Return**: Systemic Financial Crisis (0-1 dummy)
+
+**Bank Balance Sheet Ratios**: Capital ratio, loan-to-deposits ratio, non-core funding ratio
+
+Since the paper focuses on the bank liabilities, the focus will be mainly on the following bank balance sheet ratios:
+
+- **Capital ratio**
+
+- **Loan-to-deposits ratio (LtD ratio)**
+
+- **Non-core ratio**
+
+Now I think, it is time to start with the exercises! So, let's go!
+
+First, we need to load the data *Bankdata.rds* with the `readRDS()` function and assign it to `bankdata`. As you can see, the data is stored in a *.rds* file format. If you want to know how to load and save data with `readRDS()`, just open the following info box before you solve the first chunk.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Data import")
+```
+
+Now let's solve your very first chunk. 
+
+**Task:** Use `readRDS()` to load the data *Bankdata.rds* and assign it to `bankdata`. Press on **edit**, type your solution and press on **check**. If you need help, just press on the **hint** button. 
+
+```{r "2_2"}
+# Load bankdata.rds with readRDS() and assign to bankdata
+```
+
+In the above chunk we have loaded a RDS file and created a data frame named as `bankdata`, which is a two dimensional data structure in R. 
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Data frames")
+```
+
+To get a first glance of the data set `x`, we can use the `head(x,n)` function to display its first `n` rows and the `tail(x,n)` function to display its last `n` rows. If you exclude the argument `n`, the function returns the first/last six rows of the data set by default. 
+
+**Task:** Show the first five rows of the data set you created in the previous code chunk.  
+
+```{r "2_7"}
+# Load the first five rows of bankdata
+```
+
+The first two columns represent the `year` and the `country` whereas the third and fourth variable `ccode` and `ìso` indicate the corresponding country. Note, that the above output has the ability to show tables with horizontal scrolling, which is useful when you have a table with many variables. Isn't it awesome?! 
+
+**Task:** As you can see, the data set contains a lot of variables. Use the `dim()` function to determine the number of rows and columns.
+
+```{r "2_8"}
+# dimension of bankdata
+```
+
+
+Quiz: How many variables does the data set contain?
+
+Answer: 
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Number of variables")
+```
+
+
+Quiz: How many rows does the data set contain?
+
+Answer: 
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Number of rows")
+```
+
+Moreover, it is interesting to know which countries are present in the data set. To find that out, you can use the `unique()` function which returns a vector by throwing out the duplicates. 
+
+**Task:** Solve the following task to display the list of countries and press on **check**. If you need help, just click on the **hint** button.  
+
+```{r "2_9"}
+# unique function that removes duplicates from the country variable
+```
+
+With the `unique()` function we found out that the data set contains the following 17 countries:
+Australia, Belgium, Canada, Switzerland, Germany, Denmark, Spain, Finland, France, UK, Italy, Japan, Netherland, Norway, Portugal, Sweden and USA
+
+### Type of the data set
+
+Now we want to find out, what type of data set we have. In the following info box you will get some explanation of a few data set types. 
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Statistical Data types")
+```
+
+Now let's do our first quiz. 
+
+
+Quiz: What do you think? What type of data set is *bankdata*?
+
+[1]: Cross-sectional data
+[2]: Time series data
+[3]: Panel data
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Data type")
+```
+
+Exactly. `bankdata` is a panel data, since it contains observations from the same set of countries at multiple points in time. In addition, a panel data set can be displayed in two different ways: in long or wide format. 
+
+#! start_note "long format vs wide format"
+
+#### Long format: 
+
+In long format, there is one row per country and per year. 
+
+**Check**: Press on **check** to load the example:
+
+```{r "2_10"}
+# Create data frame
+longformat <- data.frame(
+  year = c(2021, 2022, 2021, 2022),
+  country = c("Germany", "Germany", "Switzerland", "Switzerland"),
+  pop = c(83.13, 87.40, 8.70, 8.70)
+)
+longformat
+```
+
+#### Wide format:
+
+In wide format, we have a column each for a year. 
+
+**Check**: Press on **check** to load the example for *wide format*:
+
+```{r "2_11"}
+# Create data frame
+wideformat <- data.frame(
+  country = c("Germany", "Switzerland"),
+  year.2021 = c(83.13, 8.70),
+  year.2022 = c(87.40, 9.58)
+)
+wideformat
+```
+
+You can see that we now have values related to `pop` spread across multiple columns.
+
+It is also possible to reshape the data with the `pivot_wider()` functions (from long to wide) and `pivot_longer()` functions (from wide to long) from the `tidyr` package.
+
+<img src="Data/pivot.png" style="width: 90%; height: 90%">
+
+*Figure 1: "pivot_longer() vs pivot_wider()"; Source: own illustration*
+
+For more information, click [here](https://cran.r-project.org/web/packages/tidyr/vignettes/pivot.html). 
+#! end_note
+
+
+Quiz: Is bankdata a data in wide or long format?
+
+[1]: Wide format
+[2]: Long format
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Long format vs wide format")
+```
+
+
+## Exercise 2 Long-run evolution of the capital structure
+
+In this chapter, we want to analyse the long-run evolution of the capital structure of banking systems. Before analysing the evolution, I will give you a short introduction to the bank balance sheet to make you familiar with the capital structure of banks. Furthermore, we will learn about the Basel regulations which will help you to understand the intuition behind the analysis conducted by *Jordà et al.*.
+
+<img src="Data/Bankbalancesheet.png" style="width: 30%; height: 30%">
+
+*Figure 2: "Stylized Bank Balance Sheet"; Source: own illustration based on Lessambo, 2020*
+
+You can see that the bank's balance sheet is different from a non-bank institution. The asset side of the balance sheet includes cash, trading assets and  loans. On the other side of the balance sheet, the interest-bearing liabilities represent the funding sources and primarily consist of deposits, such as time and savings deposits. Moreover, the liabilities side include debt and equity. To sum up, the banks' balance sheet provides us information about:
+- Liquidity
+- Solvency 
+- Profitability
+
+The main problem is that on the one hand banks grant loans, but on the other hand they should be able to maintain their own solvency at all times and compensate for possible losses. To ensure the stability of the financial system, it is needed to impose regulations *(Moosa, 2013)*.
+
+In 1974, the central banks of the G10 countries created the Basel Committee on Banking Supervision with the aim of harmonising supervisory rules for the financial sector *(Moosa, 2013)*. 
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Basel I")
+```
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Basel II")
+```
+
+### Basel III
+
+To strengthen the financial systems after the Global Financial Crisis, new capital requirements were defined in 2010. [Basel III](https://www.bis.org/publ/bcbs189.pdf) has changed the structure of the mandatory equity capital. According to Basel III, the regulation requires a Tier 1 capital of 6% and Tier 2 capital of 2% which means that the total capital ratio of 8% remains unchanged.  
+
+In addition, supplementary buffers have been defined to provide further security. One part of the additional buffer is the *capital conservation buffer* (CCoB) of 2.5% to improve banks’ loss-absorbing capacity. Another part of the additional buffer is the *countercyclical capital buffer* (CCyB) in the range of 0%-2.5%, which strengthens the bank's resilience to shocks *(BIS, 2010)*. 
+
+<img src="Data/Basel2_Basel3.png" style="width: 60%; height: 60%">
+
+*Figure 5: "Basel II vs Basel III"; Source: own illustration*
+
+A new element introduced in the Basel III regulation is the **leverage ratio**:
+$$\text{Basel III Leverage ratio (%)} = \frac{\text{Tier 1 Capital}}{\text{Total exposure}}$$
+The leverage ratio should be at least 3%. According to the Bank for International Settlements (*BIS*), the introduction of the *leverage ratio* *"is intended to [...] constrain leverage in the banking sector, thus helping to mitigate the risk of the destabilising deleveraging processes which can damage the financial system and the economy" (BIS, 2010, p.4)*.
+
+Due to the Global Financial Crisis, the supply of funds was low for a long time. Despite adequate capitalisation, many banks got into financial difficulties due to inadequate liquidity management. This forced banks to sell further assets whereby the prices also declined. Thus, the new liquidity requirements, that were introduced by the Basel III regulation, aim *"to ensure that global banks have sufficient unencumbered, highquality liquid assets to offset the net cash outflows it could encounter under an acute shortterm stress scenario" and "to limit over-reliance on short-term wholesale funding during times of buoyant market liquidity and encourage better assessment of liquidity risk across all on- and off-balance sheet items" (BIS, 2010, p.9)*. Therefore, two liquidity ratios have been defined: **Liquidity Coverage Ratio (LCR)** and **Net Stable Funding Ratio (NSFR)**.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("LCR & NSFR")
+```
+
+Let's do a small quiz to check whether you have understood the Basel III accord.
+
+Quiz: Which ratio was not introduced by Basel III?
+
+[1]: Unweighted capital ratio
+[2]: Net Stable Funding Ratio
+[3]: Output floor
+[4]: Liquidity Coverage Ratio
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Basel III")
+```
+
+Great. The unweighted capital ratio (Leverage ratio), the NSFR and the LCR have been newly defined in Basel III. The output floor was introduced in the next accord, the so-called **Basel IV** framework *(BIS, 2017)*.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Basel IV")
+```
+
+As *Schularick and Taylor (2012)* and *Jordà et al. (2017)* have already analyzed the asset side of the banks' balance sheet, the following analysis will focus on the liability side. The authors aggregate the bank capital structure into three categories - **capital, deposits and non-core liabilities** - and analyse the long-run evolution of the capital ratio, the loan-to-deposits ratio and the non-core ratio.
+
+
+## Exercise 2.1 Evolution of the capital ratio
+
+The Basel Committee introduced an unweighted capital ratio, the so-called *leverage ratio*. The *unweighted* capital ratio considered in the paper is similar to the *leverage ratio*. It is calculated by dividing the capital by the total assets: $$Capital\ ratio = \frac{Capital}{Total\ assets}$$
+
+In contrast to Basel III, where capital is divided by total exposure, the authors of this paper use *total assets*, since off-balance-sheet assets are not included.  
+
+As a first analysis step, we create **graphs**. Graphs are useful for discovering possible hidden relationships or simply for graphing results and sharing them with others. The most commonly used function for creating graphics is the `ggplot()` command from the `ggplot2` package which was developed by *Hadley Wickham*. 
+
+#! start_note "Package ggplot2"
+The basis of the package is the so-called Grammar of Graphics which is represented by the two "g"'s in the name of the package. The following illustration by *Allison Horst (2021)* shows beautifully that you can create many creative data visualizations with the `ggplot2` package. 
+
+<img src="Data/ggplot2.png" style="width: 40%; height: 40%; border:0.2px solid grey">
+
+*Figure 7: "Data Visualization in ggplot2"; Source: Allison Horst, 2021*
+
+The main elements of the `ggplot()` function are: 
+
+- Data set with the variables to be visualized graphically
+
+- Mapping: Mapping variables on the plot with the `aes()` function:
+
+  The `aes()` function contains the following arguments:
+  - `x`: x-values
+  - `y`: y-values
+  - `color`: colour of line, point, ...
+  - `fill`: colour for areas
+  - `linetype`: solid, dashed, ...
+  - `alpha`: transparency
+
+- Type of graphical representation (scatter, line, bar chart, box plot, facets etc.)
+
+Here are some geometrics that will help us in the next exercises:
+
+- Scatterplot: `geom_point()`
+- Line plot: `geom_line()`
+- Area plot: `geom_area()`
+- Reference line: `geom_abline()`
+- Horizontal line: `geom_hline(yintercept = )`
+- Vertical line: `geom_vline(xintercept = )`
+- Bar plots: `geom_bar()`
+- Histograms: `geom_histogram()`
+
+The following link will provide you with more information on the `ggplot2` package: https://cran.r-project.org/web/packages/ggplot2/ggplot2.pdf
+
+#! end_note
+
+**Task:** Reload the data set *Bankdata.rds*. Since the code is already given, just press on the **edit** and then on **check**.
+
+```{r "4_1"}
+# load the data bankdata.rds and assign it to bankdata.
+bankdata <- readRDS("Bankdata.rds")
+```
+
+
+First, let us analyse the evolution of the capital ratio in Germany. Therefore, as a first step, we need to prepare our data. The `filter()` function from the `dplyr` package will help us to filter our data by `country=="Germany"`. Before solving the next code chunk, read through the following info boxes, if the `filter()` function is new to you.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Logical operators")
+```
+
+#! start_note "Info: Dplyr: filter() and piping"
+
+As soon as one deals with data transformation in R, one often uses the `dplyr` package. The `dplyr` package facilitates the preparation of data sets. Often you are interested in splitting a data frame based on certain conditions. This can be easily done with the `filter()` function from the dplyr package.
+
+**Task:** Press on **check** to see how the data has been filtered.
+```{r "4_3"}
+filtereddata <- filter(bankdata, country == "Germany")
+head(filtereddata, 3)
+```
+
+To facilitate the coding, one often uses so-called **pipes** from the `magrittr` package. It is useful in performing different data modification steps on a data set. We always start the code with the data frame and then simply append all the functions in chronological order. Between each function we use the pipe-operator `%>%`. In addition, the operator always takes what is to the left of the pipe and passes it to the function to the right of the pipe.
+
+**Task**: Replace __ to filter the `bankdata` by `country == "Germany"` and display the first three lines. 
+```{r "4_4"}
+filtereddata <- bankdata %>%
+  filter(__) %>%
+  head(__)
+
+```
+
+Click [here](https://www.rdocumentation.org/packages/dplyr/versions/0.7.8/topics/filter) to learn more about the `filter()` function.
+
+
+#! end_note
+
+**Task:** Filter the `country` variable by using the `filter()` function of the `dplyr` package and assign it to `dat_germany`. Just fill in the gaps and use the **hint** button, if you need help. 
+
+```{r "4_5"}
+# Load dplyr package
+library(dplyr)
+# filter data by country Germany
+dat_germany <- bankdata %>%
+  filter(__)
+```
+
+
+Now use the `ggplot()` function to plot the long-run evolution of the capital ratio `lev` in *Germany*. The x-axis should project the `year` variable and the y-axis the capital ratio `lev` in %. The following info boxes explain how graphs can be customized with respect to the labels and scaling of the axes.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Axis, legend and plot labels")
+```
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Scaling")
+```
+
+**Task:** Replace __ by with the correct objects and press on **check**. 
+
+```{r "4_8"}
+# Line graph of the evolution of the capital ratio in %
+ggplot(data = __, mapping = aes(x = __, y = __)) +
+  geom_line()  +
+  scale_x_continuous(limits = c(1870, 2015), breaks = seq(1870, 2015, 20)) +
+  labs(x = "year", y = "Capital ratio (%)", title = "Capital ratio Germany, full sample") +
+  theme_bw()
+```
+*Figure 8: "Capital ratio Germany, full sample"; Source: own illustration*
+
+If we compare the capital ratio  of the years 1870 and 2015, we can see an extreme decrease in the ratio. Bank capital ratios declined dramatically in the period from 1870 to 1945 and then stabilized at a low level. In addition, since the Jordà-Schularick-Taylor Macrohistory database does not capital ratios for Germany for the period of the two world wars, we can observe two gaps within the evolution. Now the question rises, whether the decreasing evolution is also visible for the remaining countries. 
+
+We will create the same plot, but this time we want to generate many plots next to each other to get a nice overview over all countries. To do so, we use the unfiltered data set `bankdata` and add the `facet_wrap(~ country)` layer to split the plot into a matrix of panels. 
+
+**Task:** Complete the gaps in the following code and press on the **check** button.
+
+```{r "4_9",fig.width=9}
+# Capital ratio series by country
+ggplot(data = __, mapping = aes(x = __, y = __)) +
+  geom_line() +
+  facet_wrap(~ __) +
+  scale_x_continuous(limits = c(1870, 2015), breaks = seq(1870, 2015, 40)) +
+  labs(x = "year", y = "Capital ratio (%)", title = "Capital ratio by country, full sample") +
+  theme_bw()
+```
+*Figure 9: "Capital ratio by country, full sample"; Source: OnlineAppendix, A4, 2020*
+
+This view clearly shows that the capital ratio has fallen rapidly since 1870 for most of the country. In Canada, for example, the capital ratio was around 50% at the beginning of the observation period, which declined rapidly until 1945 and has remained at a low level since then, as in all other countries. Since it is difficult to compare every single plot with each other, let's try to aggregate all 17 countries. To do so, we include so-called statistical measures like the mean, the median and the 25th/75th percentile range. To learn more about statistical measures, open the following info box.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Statistical measures")
+```
+
+First, we need to calculate the mean, the median and the 25th/75th percentile for each year. To create such data, we use the two important functions `group_by()` and `summarise()` from the `dplyr` package.  
+
+#! start_note "Dplyr 2: summarise() and group_by()"
+
+The `summarise()` function can be used to aggregate data, e.g. to form a sum or an average. In particular, the function is used in combination with the dplyr function `group_by()`. The `group_by()` function divides the data in different groups. In `summarise()` you can use several *summary functions* like `min(x)`,`max(x)`, `mean(x)`, `median(x)` and `quantile(x, probs)` and assign it to a variable name. Moreover, to avoid errors, you need to use the `na.rm = TRUE` argument in every summary function which removes NA values from the calculation. 
+
+**Task:** Click on **check** to see the result of the following example.
+Example: 
+```{r "4_10"}
+# Calculate mean and maximum population of each country
+bankdata %>%
+  # group by country
+  group_by(country) %>%
+  # calculate min and max of each group
+  summarise(
+    min_pop = min(pop),
+    max_pop = max(pop)
+  ) %>%
+  head(5)
+```
+
+For further information on the above functions, click on the following links:  
+- [group_by()](https://dplyr.tidyverse.org/reference/group_by.html) 
+- [summarise()](https://dplyr.tidyverse.org/reference/summarise.html)
+#! end_note
+
+**Task:** Replace __ with the appropriate data and variables. Moreover, we want to display the first five rows of `summarise_data`.
+
+```{r "4_11"}
+# Summarise the data by year and calculate the statistical measures
+summarise_data <- __ %>%
+  group_by(__) %>%
+  summarise(mean_lev = mean(__, na.rm = TRUE)*100, 
+            median_lev = median(__, na.rm = TRUE)*100, 
+            upper_lev = quantile(__, probs = 0.75,  na.rm = TRUE)*100,
+            lower_lev = quantile(__, probs = 0.25,  na.rm = TRUE)*100
+            ) 
+  
+# Show the first five lines of summarise_data
+head(__, 5)
+```
+We have created a data set `summarise_data` which contains the mean, median, 25th-quantile and 75th quantile. We use the `geom_line()` function to plot the mean and median as lines whereas the `geom_ribbon()` command is needed to visualize the 25th and 75th quantile as a ribbon. Additionally, we add a new layer to our code: `theme()`.
+
+#! start_note "Themes"
+
+The `theme()` function allows us to customize the graphical parameters like the size of axis labels and legend labels, the position of the legend or even more fancy aspects like the background colour of the plot.
+
+**Optional task:** Let's play around and create a fancy plot. Try to understand each step and press on the **check** button afterwards to see the amazing result.
+
+```{r "4_12",optional=TRUE}
+# Population grouped by country
+ggplot(bankdata, aes(x = iso, y = pop/100000, fill = iso)) +
+  geom_col() +
+  labs(y = "Pop in Mio.", title = "Population by country") +
+  # Modification of theme
+  theme(plot.background = element_rect(fill = "lightgreen"),
+        plot.title = element_text(color = "Darkgreen", size = "20", face = "bold"),
+        legend.title = element_blank(), 
+        panel.background = element_rect(fill = "lightblue"),
+        panel.grid.major.y = element_line(color = "lightblue"),
+        axis.text.x = element_text(color = "darkblue"),
+        axis.text.y = element_text(color = "red"),
+        axis.title.x = element_text(color = "purple", face = "bold"),
+        axis.title.y = element_text(color = "red", face = "bold"))
+```
+*Figure 10: "Population by country, full sample"; Source: own illustration*
+
+As you can see, the `ggplot2` package allows us to create very creative plots. If you want to learn more about this layer, click [here](https://ggplot2.tidyverse.org/reference/theme.html).
+
+#! end_note
+
+**Task:** Please fill in the gaps and click on the **check** button. 
+
+```{r "4_13",fig.width=9}
+# Plot of aggregated capital ratio from 1870 to 2015
+ggplot(data = __) +
+  geom_line(aes(x = year, y = __, color = "Mean")) +
+  geom_line(aes(x = year, y = __, color = "Median")) +
+  geom_ribbon(aes(x = year, ymin = __, ymax = __, fill = "25th/75th percentile range"), alpha = 0.2) +
+  labs(x = "year", y = "Capital ratio (%)", title = "Capital ratio, averages by year for 17 countries, full sample") +
+  scale_x_continuous(breaks = seq(1870, 2015, 20)) +
+  theme(legend.position = "right", legend.title = element_blank()) +
+  theme_bw()
+```
+*Figure 11: "Capital ratio, averages by year for 17 countries, full sample"; Source: Jordà et al., 2020, p.266*
+
+
+The average capital ratio decreased rapidly from 30% to 10% in the period 1870-1950. Afterwards it remained stable in a range of 5%-10%. Moreover, we can observe that the gap between the 25th percentile and the 75th percentile is getting smaller, indicating that the stability of the capital ratio has increased since 1870. It is interesting to see that in the years before 2007, when the recent financial crisis occurred, there was no significant decline in capital ratios. Following the Global Financial Crisis in 2008/09, the average capital ratio increased by around 3%. This could be due to higher capital requirements introduced by Basel III. There are various reasons for the rapid decline in the capital ratio, for example the introduction of deposit insurance schemes. Moreover, according to *Jordà et al.*, banks are better able to hedge against risks in today's financial markets than they were in the 19th century.  
+
+#! start_note "Deposit insurance"
+
+Because banks are vulnerable to liquidity and solvency problems, for example because they convert short-term liquid deposits into longer-term, less liquid loans, depositors are risk averse when it comes to investing their money. 
+**Deposit insurance** offers protection to depositors in case the financial institution fails. 
+
+We will use a list with deposit insurance introduction dates provided by *Jordà et al.* *(Jordà et al., OnlineAppendix, A2)*, to plot the development of deposit insurances over the years.
+
+**Optional task:** Press on check to map the evolution of the deposit insurance during the observation period:
+```{r "4_14",optional=TRUE}
+DI_dat <- bankdata %>%
+  mutate(DI = ifelse(country=="Australia" & year>=2008 | country=="Belgium" & year>=1974 | country=="Denmark" & year>=1987 | country=="Finland" & year>=1969 | country=="France" & year>=1980 | country=="Italy" & year>=1987 | country=="Canada" & year>=1967 | country=="Netherlands" & year>=1978 | country=="Norway" & year>=1961 | country=="Portugal" & year>=1992 | country=="Spain" & year>=1977 | country=="Sweden" & year>=1996 | country=="UK" & year>=1982 | country=="USA" & year>=1933 | country=="Switzerland" & year>=1984 | country=="Japan" & year>=1971 | country=="Germany" & year>=1998, 1, 0)) %>%
+  dplyr::select(year, iso, DI, lev) %>%
+  group_by(year) %>%
+  summarise(DI = sum(DI)/n(),
+            lev = mean(lev, na.rm = TRUE)) 
+
+ggplot(data = DI_dat) +
+  geom_area(aes(x = year, y = DI),  fill = "grey") +
+  geom_line(aes(x = year, y = lev, color = "lev"), linewidth = 1) +
+  scale_x_continuous(breaks = seq(1870, 2015, 20)) +
+  labs(title = "Evolution of deposit insurance in %", fill = "", color = "") +
+  theme_bw()
+```
+*Figure 12: "Evolution of deposit insurance in %"; Source: own illustration*
+
+The above graph indicates, that a decrease in capital ratio could be associated with the introduction of deposit insurance.
+
+#! end_note
+
+But what does the decrease in capital ratio mean for the bank's balance sheet? Let's find that out in the following quiz.
+
+
+Quiz: What could be a reason for the decreasing evolution of the capital ratio since 1870?
+
+[1]: Increase in capital
+[2]: Increase in bank leverage
+[3]: Nothing
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Decreasing capital ratio")
+```
+
+
+## Exercise 2.2 Evolution of the loan-to-deposits ratio
+
+The **loan-to-deposits ratio** is a measure for a bank's illiquidity. It compares a bank’s total loans with its total deposits: 
+$$LtD\ ratio = \frac{Loans}{Deposits}$$ 
+Deposits consist of term and sight deposits whereby we include checking and savings accounts. In addition, the authors have excluded, where possible, interbank deposits and deposits from foreigners. 
+
+As a first task of this chapter, we want to map the *LtD ratio* by country for the years 2006 and 2015 to assess the level of loan-to-deposits ratio before and after the global financial and economic crisis. Therefore, we need to filter `bankdata` by year.
+
+**Task:** Load the data set *Bankdata.rds* and assign it to `bankdata`.
+
+```{r "5_1"}
+# Load data
+```
+
+Additionally, we use the `mutate()` function to convert `ltd` into a percentage value and `year` into a factor, since `year` will be our grouping variable. 
+
+#! start_note "mutate()"
+
+With mutating we can add or change columns in data frames. The `mutate()` function from the `dplyr` package gets the new column name with the values that should be in the column as arguments. If you want to create several columns, you can string them together within the function by commas. 
+
+**Task:** Press on **check** to load the example.
+```{r "5_2",optional=TRUE}
+bankdata %>%
+  # Create two new columns col1 and col2
+  mutate(col1 = 0, 
+         # col2 is equal to 1 if the observation belongs to "Australia", otherwise it is 0
+         col2 = ifelse(country == "Australia", 1, 0)
+         ) %>%
+  # Output of the first five values of the column col1 and col2
+  dplyr::select(col1, col2) %>%
+  head(5)
+```
+
+
+#! end_note
+
+#! start_note "Factor variables"
+
+Generally, categorical variables are stored as a numerical variable or as a character, but this often leads to problems. To convert a numerical variable to factor use the `as.factor()` function.
+
+With the `class()` function you can assess the class of a variable.
+
+**Task:** Click on **check** to determine the class of `year`.
+
+```{r "5_3",optional=TRUE}
+class(bankdata$year)
+```
+
+According to the output, `year` is a numeric variable. 
+
+**Task:** Now we will convert the variable into a factor variable with the `as.factor()` function.
+
+```{r "5_4",optional=TRUE}
+bankdata$year <- as.factor(bankdata$year)
+class(bankdata$year)
+```
+
+And there you go, `year` is now a factor variable!
+
+#! end_note
+
+**Task:** Replace __ with the appropriate variable names and press on **check**. 
+
+```{r "5_5"}
+# LtD ratio for each country in 2006 & 2015
+ltd_data <- bankdata %>%
+  filter(year %in% c(__, __)) %>%
+  mutate(__ = __*100,
+         __ = as.factor(__))
+```
+
+In the following task, we will map the LtD ratio in a bar chart.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Bar chart")
+```
+
+**Task:** Fill in the following gap with the correct variable and press on the **check** button to see the result. Note that the `fill` argument in `aes()` is used to fill the bars with a colour for each year.
+
+```{r "5_8",width=8}
+# LtD ratio in % for 2006 and 2015
+ggplot(__, aes(x = iso, y = __, fill = __)) +
+  geom_col(position = "dodge", width = 0.6) + 
+  labs(title = "LtD ratio in %, by country in 2006 and 2015", y = "LtD ratio in %")
+```
+*Figure 13: "LtD ratio in %, averaged by country in 2006 and 2015"; Source: own illustration*
+
+We can observe that the LtD ratio decreases from 2006 to 2015 in most of the countries. One reason for this decline could be that deposits have increased after the financial crisis due to higher risk aversion. Another reason is that lending has declined as banks have reacted to rising capital requirements by reducing risk-weighted assets. 
+
+Now we are interested in the long-run evolution of the *LtD ratio* for the entire period. Therefore, we plot the averages of the *LtD ratio* `ltd` by year for all 17 countries. To create such data, you need the two functions `group_by()` and `summarise()` from the *dplyr* package. Then, assign the created data to `summarise_ltd`.
+
+**Task:** Fill in the gaps and press on **check**. If you need help, just click on **hint**.
+
+```{r "5_9"}
+# mean of LtD ratios in the sample countries between 1870 and 2015
+summarise_ltd <- __ %>%
+  group_by(__) %>%
+  summarise(avgltd = mean(__, na.rm = __)*100) 
+
+# Show first five rows of summarise_ltd
+__
+```
+
+Now plot the data as described above. This time, we will combine two different geometrics: `geom_point()` and `geom_line()`. 
+
+**Task:** Replace __ with the appropriate objects and press on **check**.
+
+```{r "5_10"}
+# Line and scatter plot of capital ratio averages by year for 17 countries
+ggplot(__, aes(x = __, y = __)) + 
+  geom_line(color = "blue") +
+  geom_point() +
+  labs(x = "year", y = "LtD ratio (%)", 
+       title = "LtD ratio in %", subtitle = "Averages by year for 17 countries, full sample") +
+  theme_bw()
+```
+*Figure 14: "LtD ratio, averages by year for 17 countries, full sample."; Source: Jordà et al., 2020, p.268*
+
+From 1870 to 1950 we can observe a decline of the LtD ratio from around 130% to nearly 50%. We can see a high low around the end of the second world war. *Jordà et al.* explained this low level by the fact that banks invested a large part of their assets in government securities. Moreover, the ratio has increased during the next 45 years by more than 60%. In addition, we can see the decline after the Global Financial Crisis that we already noted in the previous chart, as many banks deleveraged.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Liquidity after 2015")
+```
+
+
+
+## Exercise 2.3 Evolution of the total capital structure of banking systems
+
+The third category of the bank capital structure analysed by *Jordà et al.* is **non-core liabilities**. In times when loan demand growth exceeds deposit growth, banks look for other sources of funding, such as non-core liabilities. These are other liabilities such as interbank deposits, interbank loans, bonds and repos. The **non-core ratio** compares non-core liabilities to the total debt liabilities:
+
+$$Non \text{-} core\ ratio = \frac{Non \text{-} core \ liabilities}{Deposits + Non \text{-} core \ liabilities}$$
+
+In the following part of this chapter, we will compare all three key balance sheet ratios with each other to get an overall overview of the total capital structure.
+Therefore, we will plot the average shares of the capital `lev`, deposits `deposit`, and non-core liabilities `noncore` in total funding by year in a 100% stacked area chart. Note, that the sum of `lev` and `deposit` are called as *core-liabilities*. First, we need to prepare the data set. 
+
+**Task:** Press on **check** to load *Bankdata.rds*.
+
+```{r "6_1"}
+# Load data set
+bankdata <- readRDS("Bankdata.rds")
+```
+
+**Task:** Calculate the mean of `lev` and `coreliabilities` by year. Additionally, add the value 100 as an upper limit, which will support us later to fill the areas. Fill in the blanks and press on *check*.
+
+```{r "6_2"}
+# Aggregated data set by year
+capitalstructure <- __ %>%
+  group_by(__) %>%
+  summarise(avglev = mean(__, na.rm = TRUE)*100, 
+            avgcor = mean(__, na.rm = TRUE)*100) %>%
+  mutate(max = 100)
+
+# Show the first five lines of capitalstructure
+head(__, 5)
+```
+
+We are going to use the 100% stacked area plot to compare the percentage value of each part of total funding. To create an area plot, we use the `geom_area()` layer. 
+
+**Task:** Fill in the gaps with the correct variables and run the following code by pressing on **check**.
+
+```{r "6_3",fig.width=9}
+# 100% stacked area plot of capital structure
+ggplot(data = __) +
+  geom_area(aes(x = year, y = max, fill = "Non-core"), alpha = 0.8) +
+  geom_area(aes(x = year, y = __, fill = "Deposits"), alpha = 0.8) +
+  geom_area(aes(x = year, y = __, fill = "Capital"), alpha = 0.8) +
+  geom_vline(aes(xintercept = 1945, color = "Maximum deposit ratio"), linetype = "dashed", linewidth = 0.8) +
+  geom_vline(xintercept = 1983, colour = "purple", linetype = "dashed", linewidth = 0.8) +
+  labs(y = "Share of total funding (%)", title = "Composition of liabilities, averages by year for 17 countries, full sample", fill = "Types of liabilities", colour = "") +
+  scale_x_continuous(limits = c(1870, 2015), breaks = seq(1870, 2015, 20)) +
+  theme_bw()
+```
+*Figure 16: "Composition of liabilities, averages by year for 17 countries, full sample."; Source: Jordà et al., 2020, p.267*
+
+
+The above illustration gives us a very good overview of the bank capital structure. The area chart shows that the share of capital in total funding decreased since 1870.  The share of deposits in total funding remained the largest until 1983 (purple dashed line). It increased slowly between 1870 and 1945 (red dashed line) and decreased from 70% to 40% between 1945 and the second half of the 20th century. In the same time interval, the non-core liabilities increased rapidly from 20% to 57%. Since 1983 the share of non-core in total funding has remained the largest, but we also need to mention that we can see a decline of the non-core ratio after financial crises like in the 1990s and in 2007/2008. 
+
+
+## Exercise 3 Financial crises in 1870-2015
+
+Before we continue with the regression analysis, we are going to explore another important component of our data set: **the banking crisis chronology**. The banking crisis variable `crisisJST` is an indicator variable which is equal to 1 if the corresponding year is the first year experiencing a systemic banking crisis, and zero else. A systemic banking crisis is a "period where there are major bank failures, banking panics, substantial losses in the banking sector, significant recapitalization or significant government intervention" *(Jordà et al., 2021, p.1)*.
+
+Crises has been observed in different forms and effects for centuries. Among the best known are the stock market crash of 1929 and the subsequent Great Depression, as well as the Asian crisis in 1998 *(Kindleberger/Laffargue, 2008)*. The most significant crisis in terms of its dimension and danger since the Great Depression in 1929 is the Global Financial Crisis in 2008/2009, as for the first time many economies like Russia and Dubai have been affected in addition to Europe and the USA. Countries such as Germany, South Korea and Japan have been hit hardest by the decline in global trade. 
+
+Now, let's look at our data. First of all, we want to create a vertical stacked bar chart which describes the dimension of every crisis year. The x-axis should describe the period 1870-2015 and the y-axis the distribution of a crisis year. 
+
+**Task:** Let's load our data set by clicking on **check**.
+
+```{r "7_1"}
+# Load the data bankdata.rds and assign it to the name bankdata
+bankdata <- readRDS("Bankdata.rds")
+```
+
+Next, we prepare the data for the vertical stacked bar plot. First, we extract the data of the crisis years using the `filter()` function. Moreover, we will convert the `year` variable into a factor and assign the adjusted data set to `crisisdata`. 
+
+**Task:** Please fill in the gaps in the following code chunk. If you have difficulties while completing the code, click on the **hint** button.
+
+```{r "7_2"}
+# Extract data of crisis years and convert year into factor
+crisisdata <- __ %>%
+  filter(crisisJST == __) %>%
+  mutate(__ = as.factor(__))
+```
+
+Unlike the previous task where we used the `geom_col()` function, in the following task we will take the `geom_bar()` function because this time our `y` variable counts the number of `country` within a crisis year. Therefore, we ignore the `y` component in the `aes()` aesthetic. Furthermore, we would like to have a vertical stacked bar plot. The option `position = stack` in `geom_bar()` allows us to get a stacked column whereas the `coord_flip()` function is needed to get a vertical plot. 
+
+**Task:** Fill in the gaps and press on **check** to see the result.
+
+```{r "7_3",fig.width=6, fig.height=6.5}
+# Extract data of crisis years and convert year into factor
+ggplot(__, aes(x = __, fill = __)) +
+  geom_bar(width = 0.6, position = "stack") +
+  theme(legend.position = "left", 
+        axis.text = element_text(face="bold")) + 
+  labs(x = "year", y = "Dimension", title="Crisis year and its dimension") +
+  scale_y_continuous(breaks = seq(0, 10, 1)) +
+  coord_flip() 
+```
+*Figure 17: "Crisis year and its dimension"; Source: own illustration*
+
+The above bar chart histogram shows that the two financial crises with the greatest dimensions since 1870 were the stock market crash of 1929 and the Global Financial Crisis (GFC) of 2008/09. The GFC affects around 12 from overall 17 countries. Moreover, we can see that the crisis has already begun in 2007 in the USA and UK. In the next year, ten other countries were affected, because many banks had invested in packages of poorly collateralized real estate loans in the United States. If you are interested in the Global Financial Crisis, open the following info box *(Oldani et al., 2016)*.
+
+#! start_note "Digression: The Global Financial Crisis"
+
+The Global Financial Crisis began as a real estate crisis in the U.S. market in 2007 and has led to significantly weakened economic growth almost everywhere in the world. The financial crisis was triggered by years of rising real estate prices in the USA, which had developed into a real estate bubble, and thereafter suddenly stagnated. To look at this evolution visually, I have prepared a plot which shows the evolution of the real house prices index `lrhouses` in the USA. 
+
+**Optional task:** If you are interested in the graph, just click on the button **check** to see the result.
+
+```{r "7_4",optional=TRUE}
+# Filter data by year and country
+crisis_dat <- bankdata %>%
+  filter(iso == "USA", year >=2000 & year <=2010) 
+
+ggplot(crisis_dat, aes(x = year, y = lrhouses)) +
+  geom_path(colour = "darkgreen", linewidth = 1) +
+  geom_point(size=3, colour = "purple") +
+  geom_vline(xintercept = 2006, linetype = "dashed", colour = "blue") +
+  theme_bw() +
+  scale_x_continuous(breaks = seq(2000, 2015, 2)) +
+  labs(title = "House Prices in USA, 2000 - 2015", colour = "")
+```
+*Figure 18: "House Prices in USA, 2000 - 2015"; Source: own illustration*
+
+With rising lending interest rates and falling resale values, many borrowers were unable to pay their loan debt. Moreover, before the crisis the securitized real estate loans had been rated as "low risk" by rating agencies, but in the course of the real estate crisis, the securities were increasingly rated worse.
+
+In September 2008, the investment bank Lehman Brothers, which had invested heavily in the real estate market, filed for insolvency. At this point, the financial crisis had reached its peak. Many people lost their homes and large parts of their savings. Companies could no longer be sure that the banks would still be solvent. Even the banks could no longer trust each other. The shortage of bank liquidity and general uncertainty also endangered the non-financial sector. For example, the average imports in % of GDP fell by 5.2% from 2008 to 2009. The corresponding decline in exports was around 5.1%. 
+
+**Optional task:** Click on **check** to see the evolution of exports and imports in % of GDP.
+
+```{r "7_5",optional=TRUE}
+# Aggregate export and import in % of GDP grouped by year
+eco_data <- bankdata %>%
+  filter(year >=2000 & year <=2010) %>%
+  group_by(year) %>%
+  summarise(average_exp = mean(exports/gdp, na.rm = TRUE)*100, 
+            average_imp = mean(imports/gdp, na.rm = TRUE)*100) 
+
+# Lineplot of export and import
+ggplot(data = eco_data) +
+  geom_line(aes(x = year, y = average_exp, color = "Exports"), linewidth = 1) +
+  geom_point(aes(x = year, y = average_exp, color = "Exports"), size = 3) +
+  geom_line(aes(x = year, y = average_imp, color = "Imports"), linewidth = 1) +
+  geom_point(aes(x = year, y = average_imp, color = "Imports"), size = 3) +
+  labs(y = "Imports/Exports (%of gdp)", title = "Averages imports/ exports of 17 countries", colour = "") +
+  theme(legend.title = element_blank()) +
+  scale_x_continuous(breaks = seq(2000, 2010, 1)) + 
+  theme_economist() + 
+  scale_fill_economist() +
+  ggtitle("Averaged exports and imports in % of GDP")
+```
+*Figure 19: "Averaged exports and imports in % of GDP"; Source: own illustration*
+
+#! end_note
+
+Since the main focus of this problem set is to assess the relationship between the bank capital and the risk and severity of financial crisis, let's focus on the evolution of the capital structure around financial crisis.
+
+
+
+## Exercise 3.1 Capital structure around financial crisis
+
+In exercise 2, we analysed the long-run evolution of the capital structure from 1870 to 2015. Since we want to focus on the capital structure during, before and after the financial crisis, we limit our timeline to see the evolution more clearly. 
+
+**Task:** Press on **check** to load the data *results.rds* with the `readRDS()` function and assign it to `crisisyeardata`. 
+
+```{r "8_1"}
+# Load results.rds with readRDS()
+crisisyeardata <- readRDS("results.rds")
+crisisyeardata
+```
+
+The `year` variable includes the years before and after financial crises (+/- 4 years) whereby year 0 indicates a systemic financial crisis year. Moreover, `crisisyeardata` contains the median, the 25th quantile, the 75th quantile, the median filtered by low-capital and the median filtered by high capital of each key variable. 
+
+We are going to create a multipanel plot which describes the evolution of each key variable. Do you remember which function we usually use for creating such plots? I guess, you had the right function in mind. It is the `facet_wrap()` function. 
+
+**Task:** Replace __ by suitable objects and press on **check**. 
+
+```{r "8_2",fig.width=8}
+# Line plot of key variables centered on the crisis year
+ggplot(data = __) +
+  geom_ribbon(aes(x = crisisyear, ymin = __, ymax = __, fill = "25th/75th percentile"), alpha = 0.5) +
+  geom_line(aes(x = __, y = median, color = "Median")) +
+  geom_line(aes(x = __, y = median_low, color = "Low capital")) +
+  geom_line(aes(x = __, y = median_high, color = "High Capital")) +
+  facet_wrap(vars(var)) +
+  scale_x_continuous(breaks = seq(-4, 4, 1)) +
+  labs(y = "", title = "Event study of key variables centered on the crisis year", colour = "", fill = "") +
+  theme_igray() +
+  theme(legend.position = "bottom") 
+```
+*Figure 20: "Event study of key variables centered on the crisis year"; Source: Jordà et al., 2020, p.269*
+
+The first panel shows that the capital ratio remains stable before financial crises. It is not the case that before crises when the bankers are leveraging up and trying to get the maximum profits the capital ratio declines. The evolution of the capital ratio after crises depends on the level of capitalization. The capital ratio with low level of capitalization increases after financial crises. This makes sense, as a financial crisis can lead to higher market discipline, as creditors of banks with low capital adequacy could charge high cost of debt. In addition, a crisis can lead to stricter capital regulations. Banks with high capital tend to decrease their capital, since they have enough loss absorption capacity. 
+
+The second panel describes the LtD ratio around financial crises. The LtD ratio increases before year 0 and decreases afterwards. This applies to all levels of capitalization. In the periods before a crisis, banks could rely more on the sale of securities and do not focus on stable customer deposits. After the outbreak of the crisis, the more stable customer deposits could be more in focus because selling their own securities is suddenly more expensive. From this one can conclude that the LtD ratio could be one of the key predictors of financial crises, i.e. the likelihood of a financial crisis increases at high level of loans and low level of deposits. The third panel which describes the non-core ratio shows the same direction of development as the second panel. We can observe an increase in non-core ratio before financial crises and a slight decline afterwards.
+
+The observation that the capital ratio remains stable before financial crises was quite unexpected. To re-verify this observation, the authors of the paper presented a bar chart that examines the link between the average change in capital ratios between $\textrm{t-6}$ and $\textrm{t-1}$ and the frequency of financial crises in year $t$. We will group the sorted average change in capital ratios over the previous five years into five bins, called as quintiles.  
+
+**Task:** Please click on **check** to load the data.
+
+```{r "8_3"}
+# Load bankdata
+bankdata <- readRDS("Bankdata.rds")
+```
+
+Before we calculate the bins of the five-year average change in capital ratios `dlev5`, we will look at its distribution. Therefore, use the `summary()` function which can be used to obtain the most important descriptive statistics of a data, such as the minimum, first quartile, median, mean, third quartile and maximum.
+
+**Task:** Just replace __ with the variable  `dlev5` of `bankdata`.
+
+```{r "8_4"}
+# descriptive statistics in %
+summary(__*100)
+```
+
+The above output shows that the values of the variable cover the range from -3.05% to 2.44%.
+
+Now let's assess the quintiles of the five-year average change in capital ratios `dlev5`. Instead of the `quantile()` function, we use the `ntile(x, ngroups)` function from the `dplyr` package which is much more straightforward to place each data value of `dlev5` into a quintile. 
+
+**Task:** In the following chunk I provide you with an incomplete code that you need to fill in. If you need help, click on the **hint** button. 
+
+```{r "8_5"}
+# create data frame and calculate quintiles of capital ratio  
+bin_dat <- data.frame(
+  dlev5 = bankdata$dlev5,
+  bins = ntile(bankdata$__, 5),
+  crisisJST = bankdata$__
+  ) %>%
+  drop_na() 
+
+head(bin_dat)
+```
+
+To understand the data, we will plot the distribution of `bin_dat`, we are going to map box plots. Box plots summarise the information contained in a data set using five values: $x_{min}$, $Q_{0.25}$, $x_{Med}$, $Q_{0.75}$, $x_{max}$. Therefore, we use the `geom_boxplot()` function from the `ggplot2` package.
+
+#! start_note "Box plot"
+
+Box plot is a graph that indicates the spread and center of a data set. The centre of distributions visualised with box-whisker plots is located by the median $x_{Med}$. It is the vertical straight line in the blue box. The two extreme values $x_{min}$ and $x_{max}$ indicate the range of the data. Moreover, the box shows the central 50 % portion of the data. The horizontal lines to the left and right of the box each symbolise 25 % of the data.
+
+<img src="Data/Boxplot.png" style="width: 60%; height: 60%">
+
+*Figure 21: "Box plot"; Source: own illustration*
+
+To learn more about box plots, click [here](http://www.sthda.com/english/wiki/ggplot2-box-plot-quick-start-guide-r-software-and-data-visualization)
+#! end_note
+
+**Task:** Press on **check** to see how `bin_dat` is distributed.
+
+```{r "8_6",fig.width=9}
+bin_dat %>%
+  mutate(bins = as.factor(bins)) %>%
+  ggplot(aes(x = bins, y = dlev5, fill = bins)) +
+  geom_boxplot() +
+  coord_flip()+
+  labs(title = "Distribution of bin_dat") +
+  theme_bw()
+```
+*Figure 22: "Distribution of bin_dat"; Source: own illustration*
+
+The above plot describes the distribution of `bin_dat`. Since the sorted observations were distributed into five bins, the box plots do not overlap with each other. 
+
+Now let's calculate the financial crisis frequency in % of each bin. First you need to group our data set `bin_dat` by `bins` and `crisisJST` with the `group_by()` function, since you need to calculate the relative frequency that a systemic financial crisis occurs for each bin $1, ...,5$. Then calculate the number of observations within each group with the `summarise(n = n())`command. Following this, calculate the relative frequency `freq` and then filter by `crisisJST == 1`. 
+
+**Task:** Please fill in the blanks in the following chunk correctly. The comments will guide you through the task.
+
+```{r "8_7"}
+# Calculate financial crisis frequency in year t
+bins_freq <- __ %>%
+  # Group by bins and crisisJST
+  group_by(__, crisisJST) %>%
+  summarise(n = n()) %>%
+  mutate(freq_crisis = 100*n/sum(n)) %>%
+  # Filter by crisisyear in order to get only the financial crisis frequency in year t
+  filter(crisisJST == __)
+
+# Show bins_freq
+__
+```
+
+I think, the previous steps were quite complicated. If you didn't understand something in the previous code chunks, solve them again by clicking on **edit** and then on **original code**. In the following chunk we want to plot the prepared data by using the `geom_col()` function. 
+
+**Task:** I have an incomplete code for you in advance which you need to fill in. If you need any help, just click on the **hint** button.
+
+```{r "8_8"}
+
+# bar plot
+ggplot(data = __, aes(__, freq_crisis)) +
+  geom_col(fill = "darkgreen") +
+  labs(x = "Quintiles of capital ratio changes between year t−6 and t−1", 
+       y = "Financial crisis frequency in year t (%)", 
+       title = "Capital ratio changes and crisis frequency") +
+  theme_bw()
+```
+*Figure 23: "Capital ratio changes and crisis frequency."; Source: Jordà et al., 2020, p.270*
+
+Great! Now let's check if you have understood the above bar graph.
+
+
+Quiz: What connection can you observe between financial crisis frequency and the capital ratio?
+
+[1]: financial crisis frequency positively related to capital ratio changes
+[2]: financial crisis frequency negatively related to capital ratio changes
+[3]: financial crisis frequency unrelated to capital ratio changes
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Capital ratio changes and crisis frequency")
+```
+
+Exactly. For all bins, we can observe a financial crisis frequency in year t in the range of 2.77% - 4.17%. If we look at the lowest change of capital ratio (1st bin) and the highest change of capital ratio (5th bin), we can see that the financial crisis frequency only differs by around 0.8%. This result confirms our previous observation that the capital ratio remains stable before the systemic financial crisis.
+
+To summarise, the capital ratio has been falling since 1870, but in recent years, following the Global Financial Crisis, it has been rising again. If we only look at capital ratios around financial crises, we can't see a link between the level of the capital ratio and the likelihood of the financial crises. However, we can observe that the level of a capital plays a role in the aftermath of systemic financial crises. For banks with high-level capital, the capital ratio decreases because the bank has sufficient loss absorption capacity. Another point worth mentioning is that our analysis shows that the LtD ratio and the non-core ratio could be significant predictors of financial crisis.
+
+
+## Exercise 4 Capital structure and crisis risk
+
+A high capital ratio can be seen as a loss absorption buffer and thus, one could claim that it could make crises less likely. On the other hand, more capital could be associated with higher risk-taking on the asset side of the banking balance sheet, making crises possibly more likely. The loan-to-deposits ratio can be seen as a measure of illiquidity and thus, it could be a predictor of financial instability. Since the non-core ratio indicates the dependence on other liabilities such as interbank deposits, interbank loans, bonds and repos, it could also be a predictor of financial distress. 
+
+The main purpose of this exercise is to investigate whether the key balance sheet ratios can be used as crisis risk predictor. The authors M. Schularick and A. M. Taylor of the paper *"Credit Booms Gone Bust: Monetary Policy, Leverage Cycles, and Financial Crises, 1870 – 2008" (2012)* have shown that credit growth is a meaningful predictor of financial crises. Thus, *Jordà et al.* use the *credit-only model*, also called as the naked model, as a benchmark model and evaluate the additional predictive ability for systemic financial crisis risk coming from each one-year lagged balance sheet ratios. Therefore, the authors perform probit regressions for different model specifications and calculate the corresponding AUC values to compare the predictive ability. 
+
+In the first part of this exercise, I want to emphasize the reason behind the choice of a probit regression. In exercise 4.2, we will replicate the results of the probit regressions performed by the authors and draw the corresponding ROC curve of each model in exercise 4.3 to evaluate the predictive ability for crisis risk. Moreover, *Jordà et al.* perform robustness checks to confirm their findings of the probit regression analysis.
+
+Well then, let's get started!
+
+## Exercise 4.1a) Model building 
+
+#### Linear probability model
+
+The authors of the paper use the banking crisis variable **crisisJST** as the dependent variable, since the aim of their analysis is to assess the predictive power for crisis risk. The banking crisis variable `crisisJST` is equal to 1 if the corresponding year is the first year experiencing a systemic banking crisis, and zero else. Thus, `crisisJST` is a binary variable. Typically, we use binary variables as explanatory variables. But how is it possible to perform a regression with a binary dependent variable? In such cases, you use the so-called **linear probability model** *(Wooldridge, 2018)*.
+
+We begin with the following linear equation:
+
+$$S_{it} = \alpha_i + \beta X_{it} + \epsilon_{it}$$
+
+where $S_{it}$ is our binary variable `crisisJST` which indicates whether we have a systemic financial crisis ($S_{it} = 1$) or not ($S_{it} = 0$) in year $t$ for countries $i$. $X_{it}$ is a set of explanatory variables and $\epsilon_{it}$ is the error term. Since our data set is a panel data which contains 17 countries, we need to consider that it is possible that cross-country heterogeneity could occur. Therefore, the authors include so-called **country fixed effects** $\alpha_i$ which control for cross-country heterogeneity. 
+
+#! start_note "Country fixed effects"
+
+Country fixed-effects consider unobserved cross-country heterogeneity. In the following chunk, I have created a plot which illustrates the heterogeneity across countries. Therefore, I use the `plotmeans()` function from the `gplots` package which plots the group means and its confidence intervals. 
+
+**Task:** Just press on **check** to see the plot.
+
+```{r "10_1",fig.width=8}
+# Load library
+library(gplots)
+
+# Load bankdata
+bankdata <- readRDS("Bankdata.rds")
+
+# Group Means and Confidence Intervals of crisisJST 
+plotmeans(crisisJST ~ iso, 
+          main = "Heterogeneity across countries", 
+          col="red", connect=FALSE, pch=15, n.label = FALSE, data = bankdata)
+```
+*Figure 24: "Heterogeneity across countries"; Source: own illustration*
+
+According to the above plot, we can observe very little heterogeneity across countries. Since accounting for these effects will not negatively affect the model, the authors nevertheless considered country fixed effects.
+
+#! end_note
+
+
+Quiz: In linear probability models, the binary dependent variable can be seen as a random variable of a known distribution. Which distribution could it be?
+
+[1]: Poisson distribution
+[2]: Gamma distribution
+[3]: Binomial distribution
+[4]: Bernoulli distribution
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Distribution of a binary variable")
+```
+$$ $$
+
+Since $S_{it}$ is a binary variable, $S_{it}$ can be seen as a **Bernoulli** random variable:  $S_{it} \sim Bern(p_{it})$ *(Frees, 2010)* 
+where $$P[S_{it} = 1] = p_{it}$$ 
+
+$$P(S_{it} = 0) = 1-P(S_{it} = 1) = 1-p_{it}$$
+Moreover, it holds that: 
+
+$$E[S_{it}] = p_{it}$$ 
+
+$$Var[S_{it}] = p_{it}(1-p_{it})$$
+Assume that $\mathbb{E}(\epsilon_i|X_i)=0$. Then we get for $S_{it} \sim Bin(1,p)$ the following equation:
+
+$$\mathbb{E}(S_{it}|\alpha_{i}, X_{it}) = 0*P(S_{it} = 0 | \alpha_{i}, X_{it}) + 1*P(S_{it} = 1 | \alpha_{i}, X_{it})  = P(S_{it}=1|\alpha_{i}, X_{it}) = \alpha_i + \beta X_{it}$$
+
+where $\beta$ can be interpreted as the change in the probability that $S_{it}=1$, holding $\alpha_{i}$ constant.
+
+A big advantage of linear probability functions is that it is easily estimated by the `lm()` function. But, if we use the linear probability model, one of the Gauss-Markov assumptions for linear regressions is violated. Before we find out which assumption has been violated, click on the following info box to learn more about these assumptions *(Wooldrigde, 2018)*. 
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Gauss-Markov assumptions for linear regressions")
+```
+
+
+Quiz: Which of the assumptions is violated by the LPM model? Type the number of the corresponding assumption 1-5.
+
+Answer: 
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Violation of linear regression model assumption")
+```
+$$$$
+We have the problem of heteroskedasticity *(Mućk, 2018)*. We can observe it by the following equations:
+
+$$Var(\epsilon_{it}|\alpha_i, X_{it}) = P(S_{it} = 1|\alpha_i,X_{it})(1-\alpha_i-\beta X_{it})^2 + P(S_{it} = 0|\alpha_i,X_{it})(-\alpha_i-\beta X_{it})^2 $$
+
+$$ = (\alpha_i + \beta X_{it})(1-\alpha_i-\beta X_{it})^2 + (1- \alpha_i - \beta X_{it})(-\alpha_i-\beta X_{it})^2$$
+
+$$ = (\alpha_i + \beta X_{it})(1-\alpha_i-\beta X_{it})^2 + (1- \alpha_i - \beta X_{it})(\alpha_i+\beta X_{it})^2$$
+
+$$ = [(1-\alpha_i-\beta X_{it})^2 + (1- \alpha_i - \beta X_{it})(\alpha_i+\beta X_{it})](\alpha_i+\beta X_{it})$$
+
+$$ = [1-(\alpha_i+\beta X_{it})](\alpha_i+\beta X_{it})$$
+
+$$ = [1-P(S_{it} = 1|\alpha_i,X_{it})]P(S_{it} = 1|\alpha_i,X_{it})$$
+
+The variance is not a constant, because it varies with explanatory variables. 
+
+Moreover, it is possible to get $\hat S_{it} <0$ and $\hat S_{it} >1$. This makes no sense, since we can't have a probability below zero and above one. In the following task I would like to illustrate this problem visually by drawing a regression line of a linear probability model.
+
+**Task:** First load *Bankdata.rds* by clicking on **check**.
+```{r "10_2"}
+# Load the data Bankdata.rds
+bankdata <- readRDS("Bankdata.rds")
+```
+
+Linear probability models can be easily estimated with the `lm()` function. 
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("lm()")
+```
+
+Now, estimate the linear probability model with the `lm()` function and extract the coefficients with the `coefficients()` function. 
+
+**Task:** Just fill in the blanks and press on **check** to go to the next step.
+
+```{r "10_5"}
+# estimate a linar probability model
+reg_lpm <- lm(crisisJST ~ lev_1, data = __)
+
+# Extract the coefficients to use the intercept and slope for the regression line
+coeff <- coefficients(__)
+coeff
+```
+
+
+
+Now, we plot `crisisJST` against the one-year lagged capital ratio `lev_1` and the corresponding regression line with the `geom_abline()` command from the `ggplot2` package by inserting the intercept and slope of the model. 
+
+**Task:** Just fill in the blanks and press on **check** to see the results.
+
+```{r "10_6"}
+# Create scatterplot and regression line
+ggplot(__, aes(lev_1, __)) +
+  geom_point() + 
+  geom_hline(yintercept = c(0,1), linetype = "dashed", color = "blue") +
+  geom_abline(aes(intercept = coeff[1], slope = coeff[2], colour = "Regressionline")) +
+  scale_x_continuous(limits = c(-0.5, 6)) +
+  scale_y_continuous(limits = c(-0.5, 1.5)) +
+  labs(x = "one-year lagged capital ratio", y = "crisisJST", colour = "") +
+  theme_bw() +
+  theme(legend.position = c(0.8, 0.1))
+```
+*Figure 25: "Regressionline"; Source: own illustration*
+
+
+In the above plot, we can see that the linear probability model doesn't restrict $P[S_{it} = 1 | \alpha_{i}, X_{it}]$ to stay between the values 0 and 1.  It predicts a probability of a systemic financial crisis that is smaller and greater than 0. This problem can be circumvented by using a non-linear function. Therefore, we will take a look at the so-called **Generalized Linear Model**. If you are not familiar with this model, I recommend that you read through the following info box.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Generalized linear model")
+```
+
+Assuming $\mathbb{E}[\epsilon_{it}]=0$, the following equation holds:
+$$\mathbb{E}[S_{it}|  \alpha_{i}, X_{it}] = 0*P[S_{it} = 0 | \alpha_{i}, X_{it}] + 1*P[S_{it} = 1 | \alpha_{i}, X_{it}]  = P[S_{it} = 1 | \alpha_{i}, X_{it}] = g^{-1}(\alpha_{i}+\beta X_{it})$$
+where g represents a link function.
+
+Frequently used methods are **probit** and **logit regressions**, whereby the normal distribution is assumed for the probit regression and the logistic distribution for the logit model. Although probit and logit methods differ in their distribution assumptions, they usually deliver very similar results. They always result in $0 < \hat{y} <1$ *(Hill, 2018)*. 
+**Task:** Please click on **check** to plot the distribution functions of logit and probit. 
+
+```{r "10_b"}
+data.frame(x = seq(-4,4, by = 0.1),
+       # Distribution functions
+       Probit = pnorm(seq(-4,4, by = 0.1)),
+       Logit = exp(seq(-4,4, by = 0.1))/(1+exp(seq(-4,4, by = 0.1)))
+       ) %>%
+  pivot_longer(cols = c("Probit", "Logit"), names_to = "distr", values_to = "values") %>%
+  ggplot(mapping = aes(x, values, color = distr)) +
+  geom_line() +
+  geom_hline(yintercept = c(0,1), linetype = "dashed", color = "red") +
+  labs(x = "Random variable", y = "Cumulative Probability", color = "Distribution")
+```
+*Figure 26: "Distribution functions Logit vs Probit"; Source: own illustration*
+
+As you can see in the graph above, the distributions of the probit and logit model are bounded between 0 and 1. The authors use the **probit** regression model. Thus, we get the following equation:
+
+$$P[S_{it} = 1 | \alpha_{i}, X_{it}] = \Phi(\alpha_{i}+\beta X_{it})$$
+
+where 
+$$\Phi(x)={\frac{1}{\sqrt{2\pi}}}\int_{-\infty }^{x}e^{-t^{2}/2}\,dt $$ 
+
+and the inverse of the normal cdf $\Phi^{-1}(x)$ is our link function.
+
+In the next chapter we will learn more about the probit regression model. To move on, please click on the button below.
+
+
+## Exercise 4.1b) Model building
+
+#### Probit regression
+
+*Jordà et al.* consider the following **probit regression model** for the analysis of the predictive ability for crisis risk:
+
+$$P[S_{it} = 1 | \alpha_{i}, X_{it}] = \Phi (\alpha_{i}+\beta X_{it})$$
+
+where
+
+- $\Phi (x)$: cumulative standard normal distribution function
+
+- $S_{it}$:  indicator variable `crisisJST` of a systematic financial crisis
+
+- $X_{it}$: set of explanatory variables
+
+- $\alpha_i$: country fixed effects
+
+for all years $t=1870,..,2015$ and country $i=1,...,17$. Additionally, the authors consider country-clustered standard errors.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Cluster-robust standard errors")
+```
+
+Now we take the inverse of the normal distribution curve such that we get the linear equation on the right side:
+
+$$\begin{align} \Phi ^{-1}(P[S_{it} = 1 | \alpha_{i}, X_{it}]) =  \alpha_{i}+\beta X_{it} \end{align}$$
+And that's it. Now we have our familiar linear equation on the right side. On the left side we have a well-known score. Let's do a small quiz at this point.
+
+
+Quiz: How do we call the following expression $\Phi ^{-1}(P[S_{it} = 1 | \alpha_{i}, X_{it}])$?
+
+[1]: p-score
+[2]: z-score
+[3]: q-score
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Probit regression")
+```
+$$$$
+Our result is a **z-score**. Thus, our coefficients are interpreted as the change in the z-score with one unit increase in the explanatory variable *(Hill, 2018)*. The beta coefficients from a probit model are calculated by the well-known **maximum likelihood estimation (MLE)** *(Frees, 2006)*. Let's recall the equation of the probit regression:
+
+$$ p_{it}=P[S_{it} = 1 | \alpha_{i}, X_{it}] =  \Phi ( \alpha_{i} + \beta X_{it})$$
+
+We rewrite the above equation:
+
+$$ P[S_{it} = 1 | \alpha_i, X_{it}; \beta] =  [ \Phi ( \alpha_i + \beta X_{it})]^{S_{it}}  [1- \Phi ( \alpha_i + \beta X)]^{1-S_{it}}$$
+This equation holds, since for $S_{it}=0,1$ we get $1-\Phi( \alpha_i + \beta X_{it})$ and $\Phi ( \alpha_i + \beta X_{it})$, respectively. Now we take the natural logarithm *ln* on both sides:
+
+$$ l_{it}(\beta) =  S_{it} ln[ \Phi ( \alpha + \beta X_{it})]  + (1-S_{it})ln[1- \Phi ( \alpha_i + \beta X_{it})]$$
+
+$\tilde{\beta}$ is estimated by maximizing the following sum: 
+
+$$L(\beta) = \sum_{i=1}^N \sum_{t=1}^T  l_{it} (\beta)$$
+
+$$ = \sum_{i=1}^N \sum_{t=1}^T {S_{it} ln[ \Phi ( \alpha_i + \beta X_{it})]  + (1-S_{it})ln[1- \Phi ( \alpha_i + \beta X_{it})]}$$
+
+This is called as the **log-likelihood function**. 
+
+To calculate the maximum of the log-likelihood function, we take the partial derivative on $\beta_k$ and set it to 0. Let $\nu_{it} =  \alpha_i + \beta X_{it}$. Then we get the following equation:
+
+$$\frac{ \partial log L}{ \partial \beta_k} = \sum_{i=1}^N \sum_{t=1}^T \frac{S_{it}}{\Phi (\alpha_i + \beta X_{it})} \phi (\alpha_i + \beta X_{it})X_{it,k}  + \frac{1- S_{it}}{1- \Phi (\alpha_i + \beta X_{it})} \phi (\alpha_i + \beta X_{it})X_{it,k}$$
+
+$$ = \sum_{i=1}^N \sum_{t=1}^T [S_{it}(1- \Phi (\alpha_i + \beta X_{it})) + (1- S_{it})\Phi (\alpha_i + \beta X_{it})]\frac{ \phi(\alpha_i + \beta X_{it}) X_{it,k} }{\Phi (\alpha_i + \beta X_{it})(1-\Phi (\alpha_i + \beta X_{it}))}$$
+
+$$ = \sum_{i=1}^N \sum_{t=1}^T [S_{it} - \Phi (\alpha_i + \beta X_{it})]\frac{ \phi(\alpha_i + \beta X_{it}) X_{it,k}}{\Phi (\alpha_i + \beta X_{it})(1-\Phi (\alpha_i + \beta X_{it}))} \stackrel{!}{=} 0$$
+
+for $k=1, ... ,K$ where $K$ is the number of regressors, $T$ the number of total years and $N$ the number of total countries. Now, the maximum likelihood estimator can be calculated by solving for $\beta_k$. 
+
+But, pay attention!  Z-score units are counterintuitive and difficult to interpret, because, due to non-linearity, the sign of the coefficients indicates only the direction of the effect but not the **marginal effect**, i.e. the change in probability when x changes by one unit. However, if $X_{it}$ is continuous, the marginal effects are calculated by the derivative of the outcome. So let's derive the equation $$P[S_{it} = 1 | \alpha_{i}, X_{it}] = \Phi (\alpha_{i}+\beta X_{it})$$ by applying the *chain rule of differentiation* to get the marginal effect of our explanatory variable:
+
+If $X_{it,k}$ is continuous, then 
+$$\frac{ \partial Pr[S = 1 | \alpha, X_{it}]}{ \partial X_{it,k}} = \phi (\alpha_{i}+\beta X_{it}) * \beta_k$$
+It is mathematically quite complicated to calculate the marginal estimates and thus we need to approximate them. In this problem set we use the `probitmfx()` function from the `mfx` package, a easy to use function that directly outputs marginal effects and considers clustered standard errors. There are different calculation methods to assess the marginal estimates which will be explained in Chapter 4.2.
+
+
+## Exercise 4.2 Model estimation 
+
+*Jordà et al.* performed various probit regression models to investigate whether the capital structure of the liability side of the balance sheet is related to financial instability. In this part of the chapter, we replicate the results of the probit regressions performed by the authors and interpret the coefficients. We keep in mind that endogeneity problems have not been discussed in this paper, as the focus is on assessing crisis prediction by comparing AUC statistics (Chapter 4.3) rather than on assessing causal effects.
+
+One of the explanatory variables $X_{it}$ is the *average annual changes in credit to gross domestic product (GDP)* over the previous five years `dloansgdp5` since the authors M. Schularick and A. Taylor of the paper  [“Credit Booms Gone Bust: Monetary Policy, Leverage Cycles, and Financial Crises, 1870 – 2008”](https://www.aeaweb.org/articles?id=10.1257/aer.102.2.1029) (2012) showed that the systemic financial crises are preceded by a credit boom. Open the following info box, if you interested in the evolution of `loansgdp` around financial crises. 
+
+#! start_note "Connection between Loans/GDP and crisis risk"
+
+We will analyse the trend of Loans/GDP around the financial crisis, as we did in exercise 3.1. The data `lgdp` contains the path of the median, the high-capital median, the low capital median and the 25th/75th quantiles of the loans/GDP variable around financial crises (-4/+4 years) centered on the crisis year. 
+
+**Optional task:**  Press on **check** to see whether we can obtain the same result as *M. Schularick and A. Taylor (2012)* did.
+
+```{r "12_1",optional=TRUE}
+lgdp <- readRDS("loansgdp.rds")
+
+ggplot(data = lgdp) +
+  geom_line(aes(x = crisisyear, y = median, color = "Median")) +
+  geom_line(aes(x = crisisyear, y = median_low, color = "Low capital")) +
+  geom_line(aes(x = crisisyear, y = median_high, color = "High Capital")) +
+  geom_ribbon(aes(x = crisisyear, ymin = quantile25, ymax = quantile75, fill = "25th/75th percentile"), alpha = 0.2) +
+  scale_x_continuous(breaks = seq(-4, 4, 1)) +
+  labs(y = "", title = "Event study of loans/GDP centered on the crisis year") +
+  theme_bw() +
+  theme(legend.title = element_blank()) 
+```
+*Figure 27: "Event study of loans/GDP centered on the crisis year"; Source: Jordà et al., 2020, p.269*
+
+The above plot confirms the statement that crises are preceded by a credit boom, since we can observe an upward trend before financial crises regardless of the level of capital ratio. However, we see that the level of the capital ratio plays a role after crises.
+
+#! end_note
+
+Since the aim of this paper is to study the predictive power of the liability side of the balance sheet, the authors look at three different models whereby each model estimates the additional predictive power coming from the following one-year lagged balance sheet ratios:
+
+Model (1): one-year lagged capital ratio `lev_1`
+
+Model (2): one-year lagged loan-to-deposits ratio `ltd_1`
+
+Model (3): one-year lagged non-core ratio `noncore_1`
+
+In order to have a better overview of all variables relevant for the regression, I have simplified the data set by removing the variables that are irrelevant for the regression. Moreover, to avoid the effects of wartime financing, the authors excluded the observation periods 1914-18 and 1939-45. 
+
+**Task:** Load the data set *Regressiondata.rds* and assign it to `regdata`. Click on **check** to proceed. 
+
+```{r "12_2"}
+# Load the data
+reg_data <- readRDS("Regressiondata.rds") 
+```
+
+As I have mentioned already, the authors include country fixed effects $\alpha_i$. To account for fixed effects, we need to create dummy variables which indicates whether the observation belongs to a certain country or not. Our data set `reg_data` contains a variable called `ccode` which contains the country codes 1-17. R uses **factors** to handle categorical or dummy variables. Therefore, we use the `as.factor()` command to coerce the `ccode` variable into a factor and assign it again to `ccode`. After you have transformed it, R automatically generates dummy variables while performing a regression. 
+
+**Task:** Write a code to transform the `ccode` variable into a factor and press on **check**. If you need help, press on the **hint** button.
+
+```{r "12_3"}
+# Use as.factor() to transform ccode within the mutate() function and assign it again to ccode
+# Don't forget to use the pipe operator
+```
+
+
+
+Quiz: Now we will take a look at the data. Do you remember what function we had used to map the first six lines?
+
+[1]: str()
+[2]: first()
+[3]: head()
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Mapping the first six lines of a data")
+```
+
+**Task:** Let's map the first six rows of `reg_data` to get to know the data set better.
+
+```{r "12_4"}
+# Display the first six rows of reg_data
+```
+
+The data set contains the dependent variable `crisisJST`, the variables `ccode` and `ìso` for clustering, and the explanatory variables `dloansgdp5`, `lev_1`, `ltd_1` and `non_core_1`. The `year` variable will be considered later in the robustness checks. 
+
+In this problem set, we use the `probitmfx()` command from the `mfx` package, which estimates a probit regression and its marginal effects. Moreover, it considers clustered standard errors. Since you are using this function for the first time, I recommend that you read the following info box.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("probitmfx()")
+```
+
+Since the authors of the paper calculate the partial effects for the average observation, we ignore the `atmean` argument as these effects are calculated by default. In the following task, we estimate the model (1) which considers the explanatory variables `dloansgdp5` and `lev_1`.
+
+**Task:** Replace __ with the correct variables.
+
+```{r "12_6"}
+
+# Load the package 
+library(__)
+
+# Probit regression 
+reg1 <- probitmfx(__ ~ __ + lev_1 + ccode,  data = reg_data, clustervar1 = "ccode")
+
+```
+
+
+**Task:** Display the results by just entering the name of the model `reg1` in the following code chunk. 
+
+```{r "12_7"}
+# display the results of reg1
+```
+
+Now, let's do a few quizzes regarding the above regression table.
+
+
+Quiz: What kind of relationship does the probit regression capture between $\Delta_5 Loans/GDP$ and the likelihood of a crisis?
+
+[1]: Credit variable is significantly negatively related to a higher probability of a crisis.
+[2]: Credit variable is insignificantly positively related to a higher probability of a crisis.
+[3]: Credit variable is significantly positively related to a higher probability of a crisis.
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Regression Question 1")
+```
+
+
+Quiz: How would you describe the estimate of $\Delta_5 Loans/GDP$ in percentage?
+
+[1]: 0.82 means that 2 percentage points increase in the credit variable would increase significantly the likelihood of a crisis by 0.82 percentage points.
+[2]: 0.82 means that 2 percentage points increase in the credit variable would decrease significantly the likelihood of a crisis by 1.64 percentage points.
+[3]: 0.82 means that 2 percentage points increase in the credit variable would increase significantly the likelihood of a crisis by 1.64 percentage points.
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Regression Question 2")
+```
+
+
+Quiz: What kind of relationship does the regression capture between the one period lagged capital ratio and the crisis risk?
+
+[1]: Higher capital is associated with lower crisis risk.
+[2]: Higher capital is associated with higher crisis risk.
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Regression Question 3")
+```
+
+We can observe an increase in crisis probability by 0.17 percentage points if the unweighted capital ratio increases by one percentage point with a p-value of smaller than 0.001. The authors of the paper call it as a *"wrong" sign* since more capital predicts a higher, not lower crisis risk. *Jordà et al.* state that this effect is consistent with the fact that banks increase their capital before crises if the riskiness of assets increases (p. 273). Whether the capital ratio can be seen as a predictor of systemic financial crisis risk is examined by evaluating the AUC value in chapter 4.3 and comparing it to the AUC of the credit-only model.
+
+Now let's replicate the results of all six probit regression models and save it in a table. You are probably wondering why I mentioned six models instead of three. As the economic and regulatory situation has changed over the years, *Jordà et al.* add three more models with the same explanatory variables of model (1)-(3) that only cover the period after the Second World War.
+
+The six models with the corresponding explanatory variables are listed below:
+
+**Model (1):** Loans/GDP, capital ratio (full)
+
+**Model (2):** Loans/GDP, LtD ratio (full)
+
+**Model (3):** Loans/GDP, non-core ratio (full)
+
+**Model (4):** Loans/GDP, capital ratio (post)
+
+**Model (5):** Loans/GDP, LtD ratio (post)
+
+**Model (6):** Loans/GDP, non-core ratio (post)
+
+I have already prepared the post-war data set where the `year` variable only includes years greater than 1945.
+
+**Task:** Load the data set *regressiondata_post.rds* and save it into `reg_post`.
+
+```{r "12_8"}
+# Load regressiondata_post.rds and assign it to reg_post
+```
+
+To present the results of all six regression models in a clear way, we convert the regression output to a HTML table. A suitable function that supports the `mfx` package is the `htmlreg()` function from the `texreg` package which uses HTML formatting and can be displayed in a web browser. Before using the `htmlreg()` function, the six models need to be saved in a list.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("List Object")
+```
+
+As you have seen in the above info box, it is quite easy to use the `list()` command. 
+
+**Task:** Replace __ with the suitable variables and data sets. The steps are analogous to the previous code chunk. 
+
+```{r "12_10"}
+# Probit regression 
+probit_models <- list(
+  # Full-data Capital ratio
+  "(1) full" = probitmfx(crisisJST ~ dloansgdp5 + __ + ccode,  data = reg_data, clustervar1 = "ccode"),
+  # Full-data loan-to-deposits ratio
+  "(2) full" = probitmfx(crisisJST ~ dloansgdp5 + __ + ccode, data = reg_data, clustervar1 = "ccode"),
+  # Full-data Noncore ratio
+  "(3) full" = probitmfx(crisisJST ~ dloansgdp5 + __ + ccode, data = reg_data, clustervar1 = "ccode"),
+  # Post-data Capital ratio
+  "(4) post" = probitmfx(crisisJST ~ dloansgdp5 + __ + ccode,  data = __, clustervar1 = "ccode"),
+  # Post-data loan-to-deposits ratio
+  "(5) post" = probitmfx(crisisJST ~ dloansgdp5 + __ + ccode, data = __, clustervar1 = "ccode"),
+  # Post-data Noncore ratio
+  "(6) post" = probitmfx(crisisJST ~ dloansgdp5 + __ + ccode, data = __, clustervar1 = "ccode")
+)
+```
+
+Let's create the HTML table. Since the regression models display the coefficients of the dummy variables `ccode1`-`ccode17`, which are unnecessary for our analysis, we omit them with the `omit.coef` argument to make the table more concise. 
+
+**Task:** Read through the code and replace __ with a suitable object.
+
+```{r "12_11",results='asis'}
+htmlreg(
+  __, 
+  omit.coef = c("ccode1|ccode2|ccode3|ccode4|ccode5|ccode6|ccode7|ccode8|ccode9|ccode10|ccode11|ccode12|ccode13|ccode14|ccode15|ccode16|ccode17"),
+  caption = "Multivariate probit models for systemic financial crises - full and post-1945", 
+  # Name of cofficients
+  custom.coef.names = c("&Delta;<sub>5</sub> Loans/GDP", "Capital ratio", "LtD ratio", "Non-core ratio"),
+  # Significance levels threshold
+  stars = c(0.01, 0.05, 0.10)
+)
+```
+*Figure 28: "Multivariate probit models for systemic financial crises - full and post-1945"; Source: Jordà et al., 2020, p.273*
+
+
+
+Now it is time for some questions regarding the regression table:
+
+
+Quiz: How would you describe the estimate of the LtD ratio in percentage?
+
+[1]: 0.04** means that 2 percentage points increase in LtD ratio would increase the likelihood of a crisis significantly by 0.08 percentage points.
+[2]: 0.04** means that 2 percentage points increase in LtD ratio would decrease the likelihood of a crisis significantly by 0.08 percentage points.
+[3]: 0.04** means that 2 percentage points increase in LtD ratio would increase the likelihood of a crisis significantly by 0.1 percentage points.
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Regression Question 4")
+```
+
+*Jordà et al.* state that the positive sign of the "coefficient on the loan-to-deposits ratio [...] is more intuitive" (p.272) than the "wrong" sign of the coefficient on capital ratio, as a higher LtD ratio could indicate a higher level of credit, which increases credit risk. Moreover, in the descriptive part of this problem set, we have seen an increasing evolution of the averaged loan-to-deposits ratio before financial crises. 
+
+
+Quiz: How would you interpret the coefficient of the non-core ratio in the post-war model?
+
+[1]: Non-core ratio enters significantly with the expected sign.
+[2]: Non-core ratio enters insignificantly with the expected sign.
+[3]: Non-core ratio enters significantly with an unexpected sign.
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Regression Question 5")
+```
+
+The non-core ratio has a significant positive coefficient in the post-sample, which can be confirmed by the descriptive analysis in chapter 3.1. In addition, recent research by [Akdoğan and Yıldırım (2014)](https://pdfs.semanticscholar.org/1d3c/ba438e2798ebcabda962de0236c223b7352d.pdf?_ga=2.163444734.377063504.1669730673-535082758.1669730673) documents evidence of a procyclical behavior of the non-core liabilities and its strong correlation with credit boom. 
+
+In the following exercise, we will calculate the AUC of each model, since *Jordà et al.* analyses the additional predictive ability coming from each balance sheet ratio by evaluating the AUC statistics. 
+
+## Exercise 4.3 ROC & AUC
+
+The authors of the paper focus mainly on the so-called **Area-under-curve** (AUC), rather than the likelihood-based measures of fit to evaluate whether the key balance sheet ratios provide valuable information for systemic financial crisis prediction. In addition, we will plot so-called **Receiver-Operator-Characteristic (ROC)**-curves which can be used to assess the predictive ability of balance sheet ratios for crisis risk graphically.
+
+**Receiver-Operator-Characteristic (ROC)**-curves, shortly ROC-curves, and the corresponding **Area-under-curve** (AUC) are used to test the predictive power of a binary model. In our case, the binary classification is whether we observe a crisis year or not. For better understanding, let us look at the following *confusion matrix* *(Johnson, Kuhn, 2013)*:
+ 
+
+<img src="Data/Confusionmatrix.png" style="width: 60%; height: 60%">
+
+*Figure 29: "Confusion matrix"; Source: own illustration*
+
+The ROC-curve is a graph that plots the **True Positive Rate (TPR)** against the **False-Positive Rate (FPR)** at a variety of thresholds. In our context, thresholds are used to classify the probability of crisis into $\hat{S_{it}} = 1$ or $\hat{S_{it}} = 0$.
+
+**True positive rate (TPR)**, also known as the *sensitivity* or *probability of detection*, is defined as follows:
+$$\text{TPR} = \frac{TP}{TP + FN}$$ TPR indicated the rate of how often the model predicts positive when the actual values are positive.
+
+**False positive rate (FPR)**, also written as (1-specificity), is defined as follows:
+$$\text{FPR} = \frac{FP}{TN + FP} = 1 - \frac{TN}{TN + FP} = 1-TNR = 1-  \text{specificity}$$
+FPR measures how often the model incorrectly predicts positive when the actual values are negative.
+
+<img src="Data/ROC.png" style="width: 60%; height: 60%"> 
+
+*Figure 30: "ROC curve"; Source: own illustration*
+
+In the case of a random prediction, the ROC-curve is represented as the bisector of the coordinate system *(Figure 30)*. The better the prediction quality, the more the ROC-curve deviates positively from the bisector. The AUC is the area underneath the ROC curve. The Area-under-curve is "*close to 0.5 for models that have little ability to sort observations correctly, and it approaches 1 for models that perfectly sort the data*" (p. 272).
+
+R offers the `pROC` package which can be used to visualize ROC curves and compute AUC. The basic function of the `pROC` package is the `roc()` function, which we will use to build the ROC curves and compute the AUC.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("ROC-curve in R")
+```
+
+In order to draw a ROC curve, we first need to determine the predicted values by performing a probit regression. First, we will estimate probit models, the so-called *fixed-effect null model*, for full (0) and post-sample (1) which only includes country fixed effects and draw its ROC curve. The authors use the AUC of these models as a benchmark null rather than AUC=0.5 (bisector), with which they compare the AUC values of the other models to determine the additional predictive power for crisis risk. According to *Jordà et al.*, "fixed effects already have the ability to sort the data somewhat" (p.272). 
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Cheat sheet: Model description - 1")
+```
+
+**Task:** Click on **check** to load *Regressiondata.rds* and *Regressiondata_post.rds*. 
+
+```{r "13_2"}
+# Load the data
+reg_full <- readRDS("Regressiondata.rds")
+reg_post <- readRDS("Regressiondata_post.rds")
+```
+
+In the following, we will estimate the fixed-effect null model for full and post-WW2 sample. Since the `roc()` command doesn't accept objects from the `mfx` package, we use the `glm()` function from the `stats` package which can be also used to fit probit regression models. The only disadvantage compared to `probitmfx()` is that it doesn't output the marginal effects directly. Since we only want to assess the ROC-curve, the `glm()` function is sufficient for the following analysis.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("glm()")
+```
+
+
+**Task:** Go through the given code and replace __ with a suitable variable. 
+
+```{r "13_4"}
+# Benchmark null model - full and post
+probmodel_0 <- glm(data = reg_full, crisisJST ~ factor(__), family=binomial(probit))
+probmodel_1 <- glm(data = reg_post, crisisJST ~ factor(ccode), family=binomial(probit))
+```
+
+
+Our next step is to calculate predicted probabilities using the `predict(model, data)` function. If you want to learn more about the `predict()` function, click [here](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/predict.lm.html).
+
+**Task:** Replace __ by suitable objects and press on **check** to calculate the predicted values.
+```{r "13_5"}
+# Calculate predicted values
+pred_0 <- predict(probmodel_0, reg_full)
+pred_1 <- predict(__, __)
+
+```
+
+In the following task, we use the `roc()` function from the `pROC` package which builds a ROC curve and returns a "roc" object. Additionally, we insert the option `auc=TRUE`.
+
+**Task:** Load the `pROC` package and press on **check**.
+```{r "13_6"}
+# Load pROC package
+
+```
+
+**Task:** Replace __ with the predicted values by calling the `roc()` function and inserting the response `crisisJST` and the predictor `pred_0`. 
+```{r "13_7"}
+# Call roc() and insert crisisJST and prediction values
+# Save roc-objects in a list
+model0 <- roc(reg_full$crisisJST, __)
+model1 <- roc(reg_post$crisisJST, __)
+
+```
+
+The `pROC` package contains the `ggroc()` function which can be used to plot the ROC curve. The `legacy.axes=TRUE` indicates if the x-axis is plotted as $1-specificity$ (`TRUE`) or $specificity$ (`FALSE`). For more information about the `ggroc()` function, click [here](https://www.rdocumentation.org/packages/pROC/versions/1.18.0/topics/ggroc.roc). The layer `facet_grid(.~name)` allows us to plot the ROC curves in one frame. With the `annotate()` layer from the `ggplot2` package, we are able to plot text labels or other geometrics.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("annotate()")
+```
+
+**Task:** Replace __ with the "roc"-object `model0` and `model1` to plot the ROC curve. Additionally, we print the AUC of both models.
+```{r "13_9"}
+# ROC curves
+ggroc(list(model0 = __, model1 = __), legacy.axes = "TRUE", size = 1) +
+  geom_abline(linetype = "dashed", color = "blue") +
+  annotate("text", x = 0.5, y = 0.45, label = "no predictive value", angle = 62, size = 3) +
+  labs(title = "ROC curve", color = "Model") +
+  theme_bw() + 
+  facet_grid(.~name)
+
+# AUC
+data.frame(model0 = round(model0$auc, 2), model1 = round(model1$auc, 2))
+
+```
+*Figure 31: "ROC curve - Model (0) and (1)"; Source: own illustration*
+
+
+We can see, that the `ggroc()` function is flexible to generate beautiful plots. 
+
+The graph shows that the ROC-curves are greater than the bisector. The benchmark null prediction model has AUC=0.62 in the full (0) and AUC=0.6 in the post war sample (1). Hence, the authors set the AUC of the fixed-effect null model as the first benchmark.
+
+As a next step, the authors consider the credit-only models (full and post-war sample) (2) and (3) and compare its AUC with the AUC of the benchmark null model.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Cheat sheet: Model description - 2")
+```
+
+This time we want to extract the FPR and TPR of (0)-(3) and plot the ROC curve using the `ggplot()` function instead of `ggroc()`. We want to compare (0) with (2) in one graph, and (1) with (3) respectively, i.e. we compare the benchmark prediction null model with the credit-only model for each sample separately (full and post).
+
+**Task:** First click on **check** to perform the probit regressions for (2) and (3) and calculate the "roc" objects.
+
+```{r "13_10"}
+# Probit regression - credit-only model
+prodmodel_2 <- glm(data = reg_full, crisisJST ~ dloansgdp5 + factor(ccode), family=binomial(probit))
+prodmodel_3 <- glm(data = reg_post, crisisJST ~ dloansgdp5 +  factor(ccode), family=binomial(probit))
+
+# Predict probabilities
+pred_2 <- predict(prodmodel_2, reg_full)
+pred_3 <- predict(prodmodel_3, reg_post)
+
+# ROC curve
+model2 <- roc(reg_full$crisisJST, pred_2)
+model3 <- roc(reg_post$crisisJST, pred_3)
+```
+
+In the following code chunk, we want to calculate the TPR and FPR of (0)-(3).
+
+**Task**: Replace __ to store the rates in data frames.
+
+```{r "13_11"}
+# TPR and FPR of (0) -(3)
+rates_0 <- data.frame(fpr = 1- model0$specificities, tpr = model0$sensitivities)
+rates_1 <- data.frame(fpr = 1- model1$specificities, tpr = model1$sensitivities)
+rates_2 <- data.frame(fpr = __, tpr = __)
+rates_3 <- data.frame(fpr = __, tpr = __)
+```
+
+Now we will plot the ROC-curves of (0)-(3) using the `geom_line()` layer from the `ggplot2` package. Moreover, we will present both graphs on one page. Therefore, we use the `grid.arrange()` function from the `gridExtra` package. To learn more about multiple plots on a page, click [here](https://cran.r-project.org/web/packages/gridExtra/vignettes/arrangeGrob.html).
+
+**Task**: Replace __ with suitable data and variables and press on **check** to plot the ROC-curves.
+
+```{r "13_12",fig.width=8}
+# Load library
+library(gridExtra)
+
+# ROC of model 0 and 2
+plot_0_2 <- ggplot() +
+    geom_line(data = rates_0, aes(fpr, tpr, color = "Model 0"), colour = "red", linewidth = 1) + 
+    geom_line(data = __, aes(__, __, color = "Model 2"), colour = "blue", linewidth = 0.7) + 
+    labs(title = paste0("ROC-curve - Full sample"), x = "FPR (1-Specificity)", y = "TPR (Sensitivity)") +
+    geom_abline(linetype = "dashed")
+
+# ROC of model 1 and 3
+plot_1_3 <- ggplot() +
+    geom_line(data = rates_1, aes(fpr, tpr, colour = "Model 1"), colour = "red", linewidth = 1) + 
+    geom_line(data = __, aes(__, __, colour = "Model 3"), colour = "blue", linewidth = 0.7) + 
+    labs(title = paste0("ROC-curve - Post sample"), x = "FPR (1-Specificity)", y = "TPR (Sensitivity)") +
+    geom_abline(linetype = "dashed") 
+
+grid.arrange(plot_0_2, plot_1_3, ncol = 2)
+```
+*Figure 32: "ROC curve - Model (0) - (3)"; Source: own illustration*
+
+*Jordà et al.* conclude from the AUC-statistics that the credit-only model has an AUC of 0.71 in the full-sample (2), and 0.74 in the post-war sample (3) *(p. 272)*, which are statistically different from the benchmark null model (0) and (1). We can observe this difference by comparing the ROC curves. The ROC curve of the credit only model (blue line) lies above the ROC curve of the benchmark null model (red line). This difference can be seen in both samples. Thus, the authors fix $AUC_{Credit \ only \textrm{-} full} = 0.71$ and $AUC_{Credit \ only \textrm{-} post} = 0.74$ of the credit-only models as the next benchmark in order to see whether the balance sheet ratios which will be included in model (4)-(9) improve the crisis prediction.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Cheat sheet: Model description - All models")
+```
+
+In the next part, we will compare the models that include the balance sheet ratios with the credit-only model. If the ROC curve and AUC of models (4)-(9) are higher than the ROC curve and AUC of the credit-only model (2) and (3), the authors would interpret this observation as additional predictive ability coming from the balance sheet ratios. Let's see how the results look like. 
+
+**Task:** Replace __ with the corresponding variables to perform the probit regressions for (2) and (3) and calculate the "roc" objects.
+
+```{r "13_13"}
+# Probit regression - credit-only model
+prodmodel_4 <- glm(data = reg_full, crisisJST ~ dloansgdp5 + lev_1 + factor(ccode), family=binomial(probit))
+prodmodel_5 <- glm(data = reg_full, crisisJST ~ dloansgdp5 + ltd_1 + factor(ccode), family=binomial(probit))
+prodmodel_6 <- glm(data = reg_full, crisisJST ~ dloansgdp5 + noncore_1 + factor(ccode), family=binomial(probit))
+prodmodel_7 <- glm(data = reg_post, crisisJST ~ dloansgdp5 + __ + factor(ccode), family=binomial(probit))
+prodmodel_8 <- glm(data = reg_post, crisisJST ~ dloansgdp5 + __ + factor(ccode), family=binomial(probit))
+prodmodel_9 <- glm(data = reg_post, crisisJST ~ dloansgdp5 + __ + factor(ccode), family=binomial(probit))
+```
+
+**Task:** Replace __ with the corresponding models to calculate the predicted probabilities.
+
+```{r "13_14"}
+# Calculate predicted values
+pred_4 <- predict(prodmodel_4, reg_full)
+pred_5 <- predict(prodmodel_5, reg_full)
+pred_6 <- predict(prodmodel_6, reg_full)
+pred_7 <- predict(__, reg_post)
+pred_8 <- predict(__, reg_post)
+pred_9 <- predict(__, reg_post)
+```
+
+**Task:** To calculate the FPR and TPR of the full-sample models click on **check**.
+```{r "13_15"}
+# Calculate FPR and TPR of full models (4)-(6)
+rates_4 <- data.frame(fpr = 1 - roc(reg_full$crisisJST, pred_4)$specificities, tpr = roc(reg_full$crisisJST, pred_4)$sensitivities)
+rates_5 <- data.frame(fpr = 1 - roc(reg_full$crisisJST, pred_5)$specificities, tpr = roc(reg_full$crisisJST, pred_5)$sensitivities)
+rates_6 <- data.frame(fpr = 1 - roc(reg_full$crisisJST, pred_6)$specificities, tpr = roc(reg_full$crisisJST, pred_6)$sensitivities)
+```
+
+**Task:** Replace __ with the corresponding objects to calculate the FPR and TPR of the post-sample models and click on **check**. If you have any doubts, have a look at the above chunk or click on **hint**.
+```{r "13_16"}
+# Calculate FPR and TPR of post-WW2 models (7)-(9)
+rates_7 <- data.frame(fpr = 1 - roc(reg_post$crisisJST, __)$__, tpr = roc(reg_post$crisisJST, __)$__)
+rates_8 <- data.frame(fpr = 1 - roc(reg_post$crisisJST, __)$__, tpr = roc(reg_post$crisisJST, __)$__)
+rates_9 <- data.frame(fpr = 1 - roc(reg_post$crisisJST, __)$__, tpr = roc(reg_post$crisisJST, __)$__)
+
+```
+
+Since we need to use the `ggplot()` function several times for each model, we will use for loops, which make our lives much easier. 
+
+#! start_note "for-loops"
+
+If we want to execute a function iteratively, i.e. several times, for different objects, we need so-called for-loops. 
+
+They are structured as follows:
+
+1: for (i in vector) {
+
+2:   # function 
+
+3: }
+
+- The first line describes for which object i the given function is applied. Thus, the loop takes each object i from `vector` and executes the following defined function for each object i individually.
+
+- The second line describes the function to be executed.
+
+- The third line contains the curly bracket that concludes the function to be executed. After the function has been executed for object i, the loop begins with the i+1-th object of `vector`.
+
+**Optional task:** Run the following chunk to see the result:
+
+```{r "13_17",optional=TRUE}
+for (i in c(2, 4, 6, 8, 10)) {
+ print(i)
+}
+```
+
+#! end_note
+
+To insert `model_roc_i` for $i=1,...,7$ dynamically into the `roc()` function, we are going to use `eval(as.name(x))` to convert strings "x" to variable names `x`. Moreover, we will save each output of the `ggplot()` function in a list.
+The corresponding AUC values will be displayed below the graph.
+
+**Task:** Replace __ with suitable values.
+
+```{r "13_18",fig.height=9}
+# Create empty list for saving the plots
+ggplot_list <- list()
+
+# Full sample
+for (i in 4:6){
+  ggplot_list[[i]] <- ggplot() +
+    geom_line(data = eval(as.name(paste0("rates_", i))), aes(fpr, tpr), colour = "blue", linewidth = 1) + 
+    geom_line(data = rates_2, aes(fpr, tpr), colour = "red", linewidth = 0.7) + 
+    labs(title = paste0("ROC-curve - Model (", i, ")"), x = "FPR (1-Specificity)", y = "TPR (Sensitivity)") +
+    geom_abline(linetype = "dashed") + 
+    theme(plot.title = element_text(size=14))
+}
+# Post-WW2 sample 
+for (i in 7:9){
+  ggplot_list[[i]] <- ggplot() +
+    geom_line(data = eval(as.name(paste0("rates_", i))), aes(fpr, tpr), colour = "blue", linewidth = 1) + 
+    geom_line(data = rates_3, aes(fpr, tpr), colour = "red", linewidth = 0.7) + 
+    labs(title = paste0("ROC-curve - Model (", i, ")"), x = "FPR (1-Specificity)", y = "TPR (Sensitivity)") +
+    geom_abline(linetype = "dashed") + 
+    theme(plot.title = element_text(size=14))
+}
+
+# Place all plots in a rectangular grid
+grid.arrange(ggplot_list[[4]], ggplot_list[[5]], ggplot_list[[6]], ggplot_list[[__]], ggplot_list[[__]], ggplot_list[[__]], nrow = 3, ncol = 2)
+
+# Store AUC values in a data frame
+data.frame("Model 2" = 0.71, "Model 3" = 0.74, "Model 4" = 0.75, "Model 5" = 0.72, "Model 6" = 0.71, "Model 7" = 0.74, "Model 8" = 0.8, "Model 9" = 0.84)
+```
+*Figure 33: "ROC-curve of (2)-(9)"; Source: own illustration*
+
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Cheat sheet: Model description - All models")
+```
+First we analyse the ROC curves. In the first three graphs we see a slightly higher ROC curve for models (4)-(5) (blue line) compared to the credit-only model (2) (red line). The model that takes the non-core ratio into account, however, shows no obvious difference to model (2). In the post-WW2 subsample, model (7) also shows no difference compared to model (2). In the post-sample, the ROC curve of model (8) is larger than the curve of the credit-only model. Visually, the difference between model (9) and (2) appears to be the largest. The development of the ROC curve can also be seen in the AUC values.
+
+According to the authors of the paper, there is no significant improvement in predictive ability in the full sample (4)-(6) since the difference of the AUC of (4)-(6) to $AUC_{Credit \ only} = 0.71$ is small. Moreover, the authors stated that the post-war model (7), which includes the capital ratio, has an $AUC=0.74$ which is small compared to $AUC_{Credit \ only} = 0.71$. But the AUC of post-war models (8)-(9) are significantly higher than $AUC_{Credit \ only}$ ($AUC_{Model \ 6} = 0.8$ and $AUC_{Model \ 7} = 0.84$). 
+
+Thus, the authors conclude that credit growth is the best predictor of crisis risk whereas in the post-war period, the debt funding structure proves to be also a good crisis risk predictor. This can be explained by the fact that the debt funding structure has grown substantially since WW2 (see result of chapter 2.3). The capital ratio does not significantly add any predictive ability to the *credit growth model*.
+
+
+## Exercise 4.4 Robustness checks
+
+The authors *Òscar Jordà, Björn Richter, Moritz Schularick and Alan M. Taylor* performed additional robustness checks to ensure that their findings are robust to changes in the model.  
+
+
+#### Adding additional explanatory variables
+
+After performing the probit regressions and analysing the AUC statistics, the authors concluded that there is no link between capital ratio and crisis risk. According to *Jordà et al.*, a "wrong" sign can be observed for the unweighted capital ratio because changes in the risk-adjusted capital ratio adjusted for changes in asset risk may not be correctly reflected in the capital ratio *(p. 273)*.  Thus, the authors check whether the sign of the coefficient of the capital ratio is still positive after controlling for asset and macroeconomic risk.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Macroeconomic and asset price controls")
+```
+
+First, we load the data *Regressiondata_addcont.rds* and assign it to `data_addcont`. Then we define two models: The first model `model_addcont1` includes the macroeconomic controls whereas the second model `model_addcont2` includes the macroeconomic and asset price controls. 
+
+**Task:** Fill in the blanks and press on *check*. 
+
+```{r "14_1"}
+# Load data
+data_addcont <- readRDS(__) 
+
+# macroeconomic controls - full model
+model_addcont1 <- probitmfx(__ ~ lev_1 + dloansgdp5 + vol_dlrgdp5 + vol_dlcpi5 +  vol_stir5 + dlcpi5 + dlrgdp5 + stir5 + vol_dloansgdp5 + ccode,  data = data_addcont, clustervar1 = "iso")
+
+# macroeconomic and asset price controls - full model
+model_addcont2 <- probitmfx(crisisJST ~ lev_1 + dloansgdp5 + vol_dlrgdp5 + vol_dlcpi5 +  vol_stir5 + dlcpi5 + dlrgdp5 + stir5 + vol_dloansgdp5 + bank_return_3 + bank_return_2 + bank_return_1 + dlrhouses5 + vol_dlrhouses5 + ccode,  data = data_addcont, clustervar1 = "iso")
+
+```
+
+Moreover, we want to perform the same regression with post-war data. Load *Regressiondata_addcont_post.rds*, that contains the post-war data, and assign it to `data_addcont_post`. Then we again define two models `model_addcont1_post` and `model_addcont2_post` as above. 
+
+**Task:**  Fill in the gaps. As this is an analogous task to the previous one, you can either refer to the code above or press the **Hint** button if you get stuck.
+
+```{r "14_2"}
+
+#Load data
+data_addcont_post <- readRDS(__) 
+
+# fit model which includes macroeconomic controls for post-war data
+model_addcont1_post <- probitmfx(__,  data = data_addcont_post, clustervar1 = "iso")
+
+# fit model which includes macroeconomic and asset price controls for post-war data
+model_addcont2_post <- probitmfx(__,  data = data_addcont_post, clustervar1 = "iso")
+```
+
+Now we create a HTML-table that outputs all four models we created in the previous chunks. 
+
+**Task:** Just press on **check** to see the results.
+
+```{r "14_3",results='asis'}
+# Create HTML table
+htmlreg(
+  # Model
+  list("(1) Full" = model_addcont1, "(2) Full" = model_addcont2, "(3) Post" = model_addcont1_post, "(4) Post" = model_addcont2_post), 
+  # Hiding coefficients
+  omit.coef = c("vol_dlrgdp5|vol_dlcpi5|vol_stir5|dlcpi5|dlrgdp5|stir5|vol_dloansgdp5|bank_return_3|bank_return_2|bank_return_1|dlrhouses5|vol_dlrhouses5|ccode1|ccode2|ccode3|ccode4|ccode5|ccode6|ccode7|ccode8|ccode9|ccode10|ccode11|ccode12|ccode13|ccode14|ccode15|ccode16|ccode17"),
+  # Caption
+  caption = "Multivariate probit models for systemic financial crises, controlling for asset risk.", 
+  # Name of cofficients
+  custom.coef.names = c("Capital ratio", "&Delta;<sub>5</sub> Loans/GDP"),
+  # Significance levels threshold
+  stars = c(0.01, 0.05, 0.10)
+)
+```
+*Figure 34: "Multivariate probit models for systemic financial crises, controlling for asset risk."; Source: Jordà et al., 2020, p.274*
+
+
+Quiz: What do you think? Does the above result differ from the results of the baseline model?
+
+[1]: Yes.
+[2]: No.
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Controlling for asset risk")
+```
+
+Exactly. According to the full-data models, we still get the "wrong" sign of the capital ratio after controlling for asset risk. Thus, *Jordà et al.* conclude that *the coefficient on bank capital always enters with the "wrong" sign: more capital predict a higher, not lower risk of crisis"* *(p. 274)*
+
+Now let's move to the next robustness check.
+
+b) **Consideration of deposit insurance:**
+
+*Jordà et al.* analyse whether the deposit insurance plays a role. We would think that deposit insurance could affect the relationship between the bank capital and the risk of occurring a crisis, because without a deposit insurance banks take more risks, and thus could affect the regression of the baseline model. To analyse this aspect, the author looked at a regression model that includes the variable `DI` which is 1 for observations with deposit insurance and 0 for observations without deposit insurance.
+
+Since you are now an expert in using the `probitmfx()` function, we will only focus on the results that were already given in the paper *(OnlineAppendix, A10)*. As in the models above, the dependent variable is the financial crisis dummy and the regressors are lagged by one period. In addition, all models include country fixed effects and allow for clustered (by country) standard errors. The coefficients are marginal effects. In addition, the models include controls for macroeconomic risk, asset prices and bank equity risk premia.
+
+<img src="Data/TableA8.png" style="width: 60%; height: 60%"> 
+
+*Figure 35: "Multivariate probit models for systemic financial crises, samples split by existence of deposit insurance scheme"; Source: OnlineAppendix, A10, 2020*
+
+Let's interpret the results:
+
+
+Quiz: Do we get the same results for capital ratios as in the baseline model, if we consider observations with deposit insurance?
+
+[1]: Yes. An increase in capital ratios means a significant increase in the crisis risk.
+[2]: No. An increase in capital ratios means an insignificant increase in the crisis risk.
+[3]: No. An increase in capital ratios means a significant decrease in the crisis risk.
+[4]: No. An increase in capital ratios means an insignificant decrease in the crisis risk.
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Presence of deposit insurance - Question 1")
+```
+
+You are right. We can observe that the capital ratios are now negatively correlated, but since the coefficient has no stars, it is an insignificant result, i.e. a one percentage point increase in capital ratio means an insignificant 0.22 percentage point decrease in crisis risk. Moreover, we can see that the non-core ratio is more prominent in the case of deposit insurance than in the baseline model. The increase in a non-core ratio by one percentage point leads to a significant increase of 0.08 percentage points in the probability of a financial crisis.
+
+To sum up, the authors conclude that the credit growth, the loan-to-deposits ratio and the non-core ratio are significant crisis predictors. Moreover, there is no evidence that capital ratios are related to rising risks of systemic financial crises.
+
+## Exercise 5 Bank capital and the severity of a financial crisis
+
+In the second part of the paper, *Jordà et al.* concluded that capital ratio "*exhibits a 'wrong'-signed, weak, or non-existent predictive relationship with crisis risk*" *(p. 276)*. In the last part of the paper, the authors analyse the relationship between bank capital and the severity of a financial crisis. To assess the severity of a crisis, *Jordà et al.* analysed the evolution of the **log real GDP index** from the data set of *Baron/Xiong*. The **real GDP index** expresses the economic performance of a country in relation to its population. 
+   
+First, let's look at the evolution of the log real GDP index `lrgdp`. 
+
+**Task:** Press on the **check** button to load *Bankdata.rds* and assign it to `bankdata`.  
+
+```{r "15_1"}
+bankdata <- readRDS("Bankdata.rds")
+```
+
+Now, we want to plot the evolution of the log real GDP index for each country in one graph. Therefore, we add the group variable `country` to the `color` argument of the mapping `aes()`. 
+
+**Task:** Fill in the blanks with the correct objects and press on **check**.
+
+```{r "15_2",fig.width=9, fig.height=5}
+# Evolution of the log real GDP index
+ggplot(__, aes(__, lrgdp, color = __)) +
+  geom_line() +
+  ylab("Real GDP per capita (%)") +
+  ggtitle("Real GDP per capita by country, full sample") +
+  scale_x_continuous(limits = c(1870, 2015)) +
+  guides(color = guide_legend(ncol = 2, byrow = TRUE)) +
+  theme_bw()
+```
+*Figure 36: "Real GDP per capita by country, full sample"; Source: own illustration*
+
+The line-graph shows that the long-term increase in GDP is not steady, but rather can be described by upswings and downswings, which are called as business cycles. If you want to learn more about a business cycle, just open the following info box.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Business cycle")
+```
+
+
+In order to understand the *business cycle* and its connection to the financial crisis, let us focus on the years before and after crises. In the following chunk we will plot the evolution of the median and the quantiles of the real GDP growth in %. I have already prepared the data *gdpcrisis.rds* that contains the columns `year`, `median`, `quantile25` and `quantile75`. Thus, before you use the `ggplot()` command, you need to load *gdpcrisis.rds* and assign it to `crisisyeardata`. 
+
+**Task:** Try to solve the following incomplete code and press the **hint** button if you need help.
+
+```{r "15_3",fig.height=4.5}
+# Load data
+crisisyeardata <- readRDS("gdpcrisis.rds")
+
+# Real GDP growth distribution around financial crises
+ggplot(data = __) +
+  geom_ribbon(aes(x = year, ymin = __, ymax = __, fill = "25% - 75%"), alpha = 0.7) +
+  geom_line(aes(x = year, y = __, color = "Median"), linewidth = 1) +
+  geom_vline(xintercept = 0, linewidth = 0.5, linetype = "dashed", colour = "#CC6666") +
+  geom_hline(yintercept = 0, linewidth = 0.3, linetype = "dashed")  +
+  geom_text(aes(1.9, -0.3, label = "Start of a systemic crisis"), size = 4, colour = "#CC6666") +
+  labs(y = "Real GDP growth in %", title = "Real GDP growth distribution around financial crises") +
+  theme_bw() +
+  scale_x_continuous(breaks = seq(-6, 6, 1)) +
+  scale_colour_manual("",values="darkblue") +
+  scale_fill_manual("", values="#66CCFF") +
+  theme(legend.position = "bottom") 
+```
+*Figure 38: "Real GDP growth distribution around financial crises"; Source: own illustration*
+
+
+The above illustration shows that a crisis usually occurs during a downswing of the real GDP growth. The average annual real GDP growth dropped by around 3% around the starting point of the financial crisis. 
+
+The paper considers business cycle peaks $p$, determined by the *Bry and Boschan (1971)* algorithm. The authors analyse the change in log real GDP per capita during the period after the year $t(p)$ in which the recession starts. 
+It is not useful to regress the change in log real GDP per capita on the regression episode and interpret the coefficient, as this would imply that the entire decline in the economic performance attributes to the financial crisis. Thus, we should rather compare whether regressions with financial crisis are deeper than with "normal" recessions. Therefore, the authors classify the regression episodes into two types of recessions: normal recession and financial recession. A recession was classified as a *financial recession* whenever a crisis occurs within the next two or previous two years of a business cycle peak. The remaining episodes are allocated to *normal recessions*. The variable `pk_fin` is equal to 1 if it is a financial recession, equal to 0 if it is a normal recession, and otherwise, if the variable contains NA-values, it is not a recession. 
+
+Let us now draw a bar chart and find out how many normal and financial recessions we can observe during the observation period 1870-2015.
+
+**Task:** Press on **check** to have a look at the bar chart.
+
+```{r "15_4",fig.width=9, fig.height=5}
+# Extract normal and financial recessions
+fin_recession <- bankdata[!is.na(bankdata$pk_fin), ]
+
+# Bar plot of number of normal and financial recessions
+ggplot(fin_recession, aes(x = iso, fill = as.factor(pk_fin))) +
+  geom_bar(position = "dodge") +
+  labs(x = "Country", y = "Number of recessions", title = "Normal and financial recession", fill = "pk_fin") +
+  scale_y_continuous(breaks = seq(0, 25, 2)) +
+  theme_economist()
+```
+*Figure 39: "Normal and financial recession"; Source: own illustration*
+
+Let's do a quiz session:
+
+
+Quiz: How many normal recessions did Italy experienced during the observation period?
+
+[1]: 10
+[2]: 12
+[3]: 14
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Question 1")
+```
+
+
+Quiz: How many financial recessions did Switzerland face during the observation period?
+
+[1]: 5
+[2]: 17
+[3]: 22
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Question 2")
+```
+
+
+Quiz: How many financial recessions can we observe in total?
+
+[1]: 75
+[2]: 73
+[3]: 76
+
+```{r eval=FALSE}
+# Run line to answer the quiz above
+answer.quiz("Question 3")
+```
+
+Since the focus of the paper is on comparing the aftermath of financial crises with a high capitalized banking sector relative to a low capitalized banking sector, the authors additionally define two variables that indicate a financial recession with high capital ratio `pk_finhi` and low capital ratio `pk_finlo`, depending on whether the one-year lagged capital ratio `lev_1` is above or below the average. 
+
+**Task:** Load the data *LP_cont.rds* and assign it to `LP_cont`.
+
+```{r "15_5"}
+# Load data
+LP_cont <- readRDS("LP_cont.rds")
+```
+
+To calculate the mean of the one-year lagged capital ratio during financial recessions, we use the `filter()` and the `mean()` command. Remember, that we need to consider the `na.rm = TRUE` argument within the `mean()` function to ignore NA values. Then, use the `mutate()` function to add `pk_finhi` and `pk_finlo` to our data. 
+
+**Task:** Replace __ with the right values and press on **check**.
+ 
+```{r "15_6"}
+
+
+# Calculate mean of capital ratio during financial recession period
+mean_lev1 <- mean(filter(__, pk_fin == 1)$lev_1, na.rm = TRUE)
+
+# add pk_finlo and pk_finhi depending on level of 1-year lagged capital ratio
+LP_cont <- LP_cont %>%
+    mutate(__ =  ifelse(is.na(lev_1), NA, ifelse(__ <= mean_lev1, pk_fin, 0)), 
+           __ = ifelse(is.na(lev_1), NA, ifelse(__ > mean_lev1, pk_fin, 0))
+           )
+
+```
+
+Before, we analyse the severity of the financial crisis with a regression model proposed by *Jordà et al.*, we graphically demonstrate the relationship between bank capital and the severity of a financial crisis.
+
+To quickly show how the different recessions differ from each other in terms of the change in log real GDP, we use so-called *box plots*. We consider the difference in 100 times the log of real GDP per capita from the year $t(p)$ to $t(p)+h$ for $h=1,...,5$, where $p$ indicates the business cycle peak: `lrgdp_1`, `lrgdp_2`, `lrgdp_3`, `lrgdp_4` and `lrgdp_5`. Additionally, we consider `lrgdp_99` which is the sum of `lrgdp_x` for $x=1,...5$. Moreover, we will create a plot for each `lrgdp_x` separately by using the `facet_wrap()` layer. Therefore, we aggregate all five variables `lrgdp_x` to one grouping variable `lrgdp` using the `pivot_longer()` function. 
+
+**Task:** Replace __ with a suitable object and click on **check** to convert the `LP_cont` into a long-format.
+
+```{r "15_7"}
+boxplot_data <- __ %>%
+  # aggregation of five lagged variables to one variable
+  pivot_longer(cols = contains("lrgdp_"), names_to = "type", values_to = "lrgdp") %>%
+  dplyr::select(year, iso, boxplot_group, type, lrgdp) 
+
+head(boxplot_data)
+```
+
+The new variable `boxplot_group` indicates which type of recession we have for a given year and country. Try to understand the structure of `boxplot_data` before moving on to the next part.
+
+**Task:** Just fill in the gaps and press on **check** to create the box plots. 
+
+```{r "15_8",fig.width=9}
+# Load library
+ggplot(__, aes(x = boxplot_group, y = lrgdp, col = boxplot_group)) +
+  geom_boxplot() +
+  labs(x = "Type of recession", y = "real GDP per capita", title = "Normal recession vs financial recession (high/low)", colour = "") +
+  facet_wrap(~__, scales = "free") +
+  theme_bw()
+```
+*Figure 40: "Normal vs financial recession"; Source: own illustration*
+
+The most relevant question for us is whether the level of capital ratio is related to the severity of financial crises. The first two boxplots indicating the financial recession with low and high level don't differ significantly since the median of the green box plot is overlapped by the second box plot, the financial recessions with high capital ratio and financial recessions with low capital ratio are likely to be different *(Ngo, 2018)*. However, we can see that normal and financial recessions differ significantly in terms of severity. But, since several factors could contribute to the estimation of log real GDP, we cannot draw any conclusions from the upper graph.
+
+## Exercise 5.1 Local Projections approach
+
+*Jordà et al.* assess the severity of a financial crisis by analysing the difference in 100 times the log of real GDP per capita from the year $t(p)$ to $t(p)+h$ for $h=1,...,5$ within a $h$-year recession period.
+
+Since the real GDP describes a business cycle, the question arises, how to explain business cycles in a model, as we need to get this regular pattern with upswings and downswings. An important insight of the paper  *"The Summation of Random Causes as Source of Cyclic Process"* by *Eugen Slutzky* (1937) shows that time series that look like "*sequences of rising and falling movements, like waves [...] with marks of certain approximate uniformities and rugularities*" *(Slutzky, 1937, p.105)* can be produced by moving sums of random variables. Thus, the question arises which macroeconomic shocks drive business cycles. 
+
+*Jordà et al.* proposed the following macroeconomic shocks as suitable:
+- `lr_gdp_0`:  log real GDP
+- `lcpi`:   log consumer Price Index
+- `lriy`:   log real investment-to-GDP ratio
+- `stir`:   short-term interest rate
+- `ltrate`: long-term interest rate
+- `cay`:    current account over GDP ratio
+
+The analysis of economic time series using vector autoregressive models (VAR) is one of the important empirical macroeconomic analysis. VARs have basically been used to capture shocks and estimate their impact on economic variables *(Wooldridge, 2018)*. An alternative method to estimate impulse responses is the **Local Projection** method suggested by *Òscar Jordà (2005)* that is also aimed at the question of how fiscal policy shocks occurring in a particular period affect macroeconomic development. *Jordà et al.* explains that using Local Projections provides many advantages over *VAR* models, such as that Local Projections can be estimated using ordinary least squares (OLS) and that this method allows for non-linear model *(Jordà, 2005)*. 
+
+The Local Projection is a series of sequential regressions of OLS shifting the dependent variable $h$ periods ahead. The authors set up the following model for $h=1,...,5$ and country $i$ *(p. 279)*:
+
+$$\Delta_h y_{i, t(p)} = \sum_{i=1}^{l-1} \alpha_{i,h} D_{i,t(p)} + \mu_h + \gamma _h^{HI} d_{i,t(p)} \times \delta_{i,t(p)} + \gamma _h^{LO} d_{i,t(p)} \times (1- \delta_{i,t(p)}) + \Phi X_{i,t(p)} + \epsilon_{i,t(p)}$$
+
+where 
+
+- $\Delta_h y_{i, t(p)}$: $h$ years difference of 100*log(real GDP per capita) for the period [$t(p)$;$t(p) + h$] where $t(p)$ is the time of the business cycle peak.
+
+- $\alpha_{i,h}$: country fixed effects 
+
+- $D_{i,t(p)}$: dummy variable for each country i
+
+- $\mu_h$: average effect of the economy after normal recession
+
+- $\mu_h + \gamma _h^{HI}$: average effect of the economy after financial recession with an above capitalization
+
+- $\mu_h + \gamma _h^{LO}$: average effect of the economy after financial recession with a below capitalization
+
+- $d_{i,t(p)}$: indicator variable indicating type of recession, i.e. if  $d_{i,t(p)} = 1$ the recession is a financial recession and otherwise it is a normal recession.
+
+- $\delta_{i,t(p)}$: indicator variable indicating the level of one-year lagged capital ratio during a financial recession, i.e. if $\delta_{i,t(p)} = 1$ the one-year lagged capital ratio in $t(p)$ is higher than the average of one-year lagged capital ratios over all financial recessions.
+
+- $X_{i,t(p)}$: control variables such as the value at peak, first lag of the growth rates of real GDP per capita, real investment per capita, consumer price index inflation, short- and long-term interest rates, and the current account to GDP ratio
+
+*Note that it is necessary to understand the elements of the above Local Projection method as this will be relevant for the subsequent interpretation of the model results.*
+
+
+## Exercise 5.2 Model estimation
+
+*Jordà, Richter, Schularick and Taylor* show whether higher levels of capital are related to safer financial systems by using the Local Projection (LP) approach:  
+
+$$\Delta_h y_{i, t(p)} = \sum_{i=1}^{l-1} \alpha_{i,h} D_{i,t(p)} + \mu_h + \gamma _h^{HI} d_{i,t(p)} \times \delta_{i,t(p)} + \gamma _h^{LO} d_{i,t(p)} \times (1- \delta_{i,t(p)}) + \Phi X_{i,t(p)} + \epsilon_{i,t(p)}$$
+
+**Task:** Press on **check** to load the data *LP_cont.rds* and assign it to `LP_cont`.
+
+```{r "17_1"}
+# Load data
+LP_cont <- readRDS("LP_cont.rds")
+```
+
+As already mentioned, the benefit of the LP-model is that we can treat it as a linear model. In R, we usually use the `lm()` function, but since we need to consider country-clustered standard errors, we use the `felm()` function from the `lfe()` package. 
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("felm()")
+```
+
+As in the descriptive analysis, we will analyse six different models with six different dependent variables: `lrgdp_1`, `lrgdp_2`, `lrgdp_3`, `lrgdp_4`, `lrgdp_5` and `lrgdp_99`. Moreover, *Jordà et al.* consider centered fixed effects `fe1`-`fe16`, which are part of the ordinary covariates. As the formula consists of many explanatory variables, it is helpful to store them in a vector, which remains the same for all six models. 
+
+**Task:** Run the following code chunk to save the covariates into `exp_variables`.
+
+```{r "17_4"}
+# Covariates
+exp_variables <- c("-1", "Recession", "pk_finhi", "pk_finlo", "lr_gdp_0", "lcpi", "lriy", "stir", "ltrate", "cay", paste("fe", 1:16, sep=""))
+```
+
+Now, we build the regression formulas using the `gf()` function from the `glueformula` package. Moreover, we want to save all models in a list and assign it to `model_sev`. 
+
+**Task:** Press on **edit** and replace __ with the suitable dependent variable `lrgdp_h`. The comments will guide you through the task.
+
+```{r "17_5"}
+# Load package
+library(lfe)
+library(glueformula)
+
+# h = 1
+reg1<- felm(gf(__ ~ {exp_variables}|0|0|iso), data = LP_cont)
+
+# h = 2
+reg2 <- felm(gf(__ ~ {exp_variables}|0|0|iso), data = LP_cont)
+
+# h = 3
+reg3 <- felm(gf(__ ~ {exp_variables}|0|0|iso), data = LP_cont)
+
+# h = 4
+reg4 <- felm(gf(__ ~ {exp_variables}|0|0|iso), data = LP_cont)
+
+# h = 5
+reg5 <- felm(gf(__ ~ {exp_variables}|0|0|iso), data = LP_cont)
+
+# h = 99
+regsum <-felm(gf(__ ~ {exp_variables}|0|0|iso), data = LP_cont)
+
+# Save all models in a list
+modelsev <- list(__)
+```
+
+
+We have saved all models in the list `model_sev`. In exercise 4, the regression table was created with the `htmlreg()` function. In this chapter, we are going to use the `stargazer` package.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("stargazer()")
+```
+
+**Task:** Please enter the correct object and press on **Check**.
+
+```{r "17_7",results='asis'}
+stargazer(__, 
+          type = "html", 
+          title = "Normal versus financial recessions, real GDP per capita by capital ratio, with controls, full sample", 
+          dep.var.labels=c("Year 1","Year 2", "Year 3", "Year 4", "Year 5", "Sum"),  
+          keep = c("Recession", "pk_finhi", "pk_finlo"),
+          omit.stat="ser",
+          column.sep.width = "5pt",
+          model.numbers=FALSE)
+```
+*Figure 41: "Normal versus financial recessions, real GDP per capita by capital ratio"; Source: own illustration*
+
+
+Unfortunately, we can observe high standard errors, which could be increased by the rise in variance due to multicollinearity.
+
+#### Lagging, differencing and centering
+
+To reduce multicollinearity, one can include lagged, first-differenced or centered variables. In 1958, *Karl Fox* wrote: "*Accidental multicollinearity (or an approach to it) in economic data most frequently arises from major cyclical swings in prices, income, production, and consumption. Inter correlations resulting from this cause may often be greatly reduced by shifting to first differences*" *(Fox, 1958, p.14)*. The first difference of a variable is defined as the changes from one period to the next, i.e. the first difference of $X$ at time $t$ is equal to $X_t - X_{t-1}$.  
+
+Moreover, the controls are not stationary over our sample period and since the *Local Projection* method requires stationarity to make the model more robust *(Jordà, 2005)*, we need to transform the variables into a stationary one which can be achieved by dealing with first-differenced variables.
+
+To see the link between first-differencing and stationarity, let's look at the evolution of `lriy` (log real investment-to-GDP ratio) and `dlriy` (first difference of log real investment-to-GDP ratio). We will plot the two ratios as lines by using the `geom_line()` layer for all countries. 
+
+**Task:** Fill in the blanks and click on **check** to see the result.
+
+```{r "17_8"}
+# Evolution of lriy and dlriy over 1870-2015
+ggplot(data = __) +
+  geom_line(aes(x = __, y = lriy, color = "lriy", group = iso)) +
+  geom_line(aes(x = __, y = dlriy/100, color = "dlriy", group = iso)) +
+  labs(y = "Control variable", colour = "Control variable") +
+  scale_x_continuous(breaks = seq(1870, 2015, 20))
+```
+*Figure 42: "Link between first-differencing and stationarity"; Source: own illustration*
+
+We can clearly see that the log real investment-to-GDP ratio (blue) is not stationary, i.e. the mean is not constant over time, while the first-differenced log real investment-to-GDP ratio (red) appears to be stationary. 
+
+Moreover, *Jordà et al.* transform the control variables to centered control variables to eliminate multicollinearity. If you want to center a variable, you need to subtract the mean value of the variable from each observation. 
+
+The components of $X_{i,t(p)}$ with centered, first differenced and one-year lagged variables are listed below in the info box.
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Set of explanatory variables")
+```
+
+In the following task, we load the data *LP_cont_c.rds* which contains the centered, first differenced and one-year lagged variables.
+
+**Task:** Press on **check** to load the data *LP_cont_c.rds* and assign it to `sev_cent`.
+
+```{r "17_9"}
+sev_cent <- readRDS("LP_cont_c.rds")
+```
+
+In the following we perform the same regression as above, but this time we include the explanatory variables listed above in the info box. 
+
+**Task:** Press on **check** to see the results.
+
+```{r "17_10",results='asis'}
+exp_variables <- c("-1", "Recession", "pk_finhi", "pk_finlo", "c_dlrgdp", "c_dlcpi", "c_dlriy", "c_stir", "c_ltrate", "c_cay", "c_ldlrgdp", "c_ldlcpi", "c_ldlriy", "c_lstir", "c_lltrate", "c_lcay", paste("fe", 1:16, sep=""))
+
+reg1<- felm(gf(lrgdp_1 ~ {exp_variables}|0|0|iso), data = sev_cent)
+reg2 <- felm(gf(lrgdp_2 ~ {exp_variables}|0|0|iso), data = sev_cent)
+reg3 <- felm(gf(lrgdp_3 ~ {exp_variables}|0|0|iso), data = sev_cent)
+reg4 <- felm(gf(lrgdp_4 ~ {exp_variables}|0|0|iso), data = sev_cent)
+reg5 <- felm(gf(lrgdp_5 ~ {exp_variables}|0|0|iso), data = sev_cent)
+regsum <-felm(gf(lrgdp_99 ~ {exp_variables}|0|0|iso), data = sev_cent)
+
+model_sev <- list(reg1, reg2, reg3, reg4, reg5, regsum)
+
+stargazer(model_sev, 
+          type="html", 
+          title = "Normal versus financial recessions, real GDP per capita by capital ratio, with controls, full sample", 
+          dep.var.labels=c("Year 1","Year 2", "Year 3", "Year 4", "Year 5", "Sum"),  
+          keep = c("Recession", "pk_finhi", "pk_finlo"),
+          omit.stat="ser",
+          model.numbers=FALSE)
+```
+*Figure 43: "Normal versus financial recessions, real GDP per capita by capital ratio, with controls, full sample"; Source: Jordà et al., 2020, p.278*
+
+First and foremost, we can observe that financial recessions are more severe than normal recessions as the coefficients of `pk_finhi` and `pk_finlo` (row 2 and 3) are negative. Regarding the financial recessions of low and high level capital ratio, we cannot see a significant difference in severity of financial crisis in the first two years. After three years (column 3), the log real GDP per capita is compared to a normal recession significantly 3.94 percentage points lower when the banking sector is poorly capitalized (-7.63%) than otherwise (-3.69%). After five years (column 5), the log real GDP per capita is compared to a normal recession significantly 6.49 percentage points lower when the banking sector is poorly capitalized (-9.46%) than otherwise (−3.09%). If you look at the cumulative log real GDP over the five years (column 6), the difference of cumulative GDP between the financial recession with highly capitalized banking sector and poorly capitalized banking sector is 18.77 percentage points. Hence, we can observe that the gap between the two coefficients of the financial recessions seems to be expanding from year to year. Thus, *Jordà et al.* conclude that a well-capitalized banking sector recovers faster than a poorly capitalized banking sector. 
+
+Let's show the results of the Local Projection visually in a graph. We will create a line plot, that shows the results of the above regression table in graphical form. We want to calculate the coefficients of the models that are needed to plot the graph iteratively, but this time we are going to use a function from the `apply`-family instead of for-loops. First of all, we create a data frame `NFdat` with six rows to display the year $i$ for $i=0,...,5$, and four columns for the following variables:
+
+- Column 1: $year = 0,...,5$
+
+- Column 2: $\mu_h$: average effect of the economy after normal recession `recession`
+
+- Column 3: $\mu_h + \gamma _h^{HI}$: average effect of the economy after financial recession with an above capitalization `pk_finhi`
+
+- Column 4: $\mu_h + \gamma _h^{LO}$: average effect of the economy after financial recession with a below capitalization `pk_finlo`
+
+```{r eval=FALSE}
+# Run for additional info in the Viewer pane
+info("Building loops without loops")
+```
+
+<!-- 
+Let's go through the loop now. We have already filled the first line of the data frame with zeros in the previous chunk. Since the index of the first line of a data frame always starts at one, the index i of the loop should pass through the vector `c(2,3,4,5,6)`. 
+-->
+
+I prefer the `sapply()` function, since it gives us, if possible, a matrix or a vector, which is better to transform to a data frame in order to use this in the `ggplot()` function. To use `sapply()`, we need to write a function that extracts the coefficients of the model and stores in a matrix. 
+
+To extract the regression coefficients, we use the `coef(object)` function from the `stats` package and insert the i-th model of `model_sev`. To extract the i-th model from the list `model_sev`, we need to use squared brackets: `model_sev[[i]]`. Moreover, to calculate the average effect, we need to add the average effect of the economy after normal recession to the other two coefficients.  
+
+**Task:** Just fill in the gaps and press on the **hint** button if you get stucked.
+
+```{r "17_14"}
+# Function to extract the coefficients of Recession, pk_finhi and pk_finlo
+coefficients <- function(i){
+  coefficients <- c(coef(__)[1],
+                    coef(__)[1] + coef(__)[2],
+                    coef(__)[1] + coef(__)[3])
+}
+
+```
+
+**Task:** Now insert the function in the `sapply()` function and display the output.
+
+```{r "17_15"}
+NFdat <- sapply(seq(1,5), __)
+
+# print NFdat
+__
+```
+
+Now there is only one step left before we plot our data. First, we need to transpose `NFdat` with the function `t()` to get the variables column by column. Moreover, we convert `NFdat` into a data frame with the `as.data.frame()` command. Since our graph should start at 0, we need to insert a zero-row with the `rbind` function. 
+
+**Task:** Just press on **check** to move to the next chunk.
+
+```{r "17_16"}
+# Add zero row and transform to data frame
+NF_plot <- rbind(0, as.data.frame(t(NFdat)))
+# Rename columns
+colnames(NF_plot) <- c("Recession", "pk_finlo", "pk_finhi")
+# Print NF_plot
+NF_plot
+```
+
+The data set `NF_plot` is now ready to be passed to the `ggplot()` function. We will plot three line  representing the log real GDP per capita for all three types of recessions. In addition, the function `geom_hline()` draws a horizontal line at `y = 0`. 
+
+**Task:** Please fill in the blanks in the following chunk and click **check** to view the output.
+
+```{r "17_17",fig.width=7}
+ggplot(data = __) +
+  geom_line(aes(x = c(0:5), y = __, color = "Financial, high capital ratio")) +
+  geom_line(aes(x = c(0:5), y = __, color = "Financial, low capital ratio")) +
+  geom_line(aes(x = c(0:5), y = __, color = "Normal recession")) +
+  geom_hline(yintercept = 0) +
+  labs(x = "Year", y = "Percent (100x log)", title = "Normal vs financial recessions, real GDP per capita by capital ratio", colour = "") +
+  theme(legend.position="bottom") +
+  theme_bw()
+```
+*Figure 45: "Normal vs financial recessions, real GDP per capita by capital ratio"; Source: Jordà et al., 2020, p.280*
+
+The graph clearly shows that banks are more affected in a financial recession than in a normal recession. More interesting for us is the development of real GDP depending on the level of the capital ratio. We see a much slower upward trend in a financial recession with a poor capital ratio than in a financial recession with a high capital ratio. Thus, we can conclude that capital matters, since we can observe that financial crisis are less severe when the capital is high. A better capitalised banking system (red line) already recovers after the second year and recovers afterwards with the same speed as the economy in normal recessions (blue line). The poorly capitalized banking system (green line) recovers more slowly. 
+
+## Exercise 5.3 Robustness checks
+
+The authors performed a few robustness checks like performing  the Local Projection method without controls, Local Projection method including standard errors clustered on country and year or using pre-2006 sample instead of the full sample to make sure that the Global Financial Crisis does not affect our results (Online Appendix, A31 ff.) We will proceed in an analogous manner.
+
+In the following illustration, you can see the regression table of the baseline model we have estimated in the previous exercise.
+
+<img src="Data/Table7.png" style="width: 50%; height: 50%">
+
+*Figure 46: "Normal versus financial recessions, real GDP per capita by capital ratio"; Source: Jordà et al., 2020, p. 278*
+
+### a) Alternative model 1: Local Projection method without controls
+
+In this part of robustness check *Jordà et al.*  remove the controls $X_{i,t(p)}$ and consider the following alternative model:
+
+$$\Delta_h y_{i, t(p)} = \sum_{i=1}^{l-1} \alpha_{i,h} D_{i,t(p)} + \mu_h + \gamma _h^{HI} d_{i,t(p)} \times \delta_{i,t(p)} + \gamma _h^{LO} d_{i,t(p)} \times (1- \delta_{i,t(p)}) + \epsilon_{i,t(p)}$$
+
+**Task:** First, we need to load the data *nocont.rds* and assign it to `nocont`. To do so, please press on **edit** and **check**.
+
+```{r "18_1"}
+nocont <- readRDS("nocont.rds")
+```
+
+**Task:** Now, run the following code by pressing on **check** to estimate the alternative model.
+
+```{r "18_2"}
+exp_variables <- c("-1", "Recession", "pk_finhi", "pk_finlo", paste("fe", 1:16, sep=""))
+
+reg_1<- felm(gf(lrgdp1 ~ {exp_variables}|0|0|iso), data = nocont)
+reg_2 <- felm(gf(lrgdp2 ~ {exp_variables}|0|0|iso), data = nocont)
+reg_3 <- felm(gf(lrgdp3 ~ {exp_variables}|0|0|iso), data = nocont)
+reg_4 <- felm(gf(lrgdp4 ~ {exp_variables}|0|0|iso), data = nocont)
+reg_5 <- felm(gf(lrgdp5 ~ {exp_variables}|0|0|iso), data = nocont)
+reg_sum <-felm(gf(lrgdp99 ~ {exp_variables}|0|0|iso), data = nocont)
+
+# Save all models in a list
+model_nocont <- list(reg_1, reg_2, reg_3, reg_4, reg_5, reg_sum)
+```
+
+**Task:** Click on **check** to have a look at the regression table of the alternative model.
+
+```{r "18_3",results='asis'}
+stargazer(model_nocont, 
+          type="html", 
+          title = "Normal versus financial recessions, real GDP per capita by capital ratio, no controls, full sample", 
+          dep.var.labels=c("Year 1","Year 2", "Year 3", "Year 4", "Year 5", "Sum"),  
+          keep = c("Recession", "pk_finhi", "pk_finlo"),
+          omit.stat="ser",
+          digits = 2,
+          model.numbers=FALSE)
+```
+*Figure 47: "Normal versus financial recessions, real GDP per capita by capital ratio, no controls, full sample"; Source: OnlineAppendix, A31, 2020*
+
+According to the negative coefficients in the second and third row, we can assess, that financial recessions are worse than normal recessions. Let us look at the result of the effect after five years from a quantitative perspective: Compared to a normal recession, log real GDP per capita is 4.46 percentage points (-7.43 + 2.97) lower when the banking sector is poorly capitalized. Thus, the authors conclude, that the well-capitalized banks recover much faster from the financial recession.  
+
+### Alternative model 2: Clustered standard errors by year and country
+
+Since the panel data is based on country and year, residuals can be correlated in both ways. 
+
+**Task:** First, load the data *LP_cont_c.rds* and assign it to `LP_cont`.
+
+```{r "18_4"}
+# Load data
+LP_cont_c <- readRDS("LP_cont_c.rds")
+```
+
+In addition to the baseline regression, we include `iso+year` in the `felm()` function. 
+
+**Task:** Just press on **check** to save the models which includes clustered standard errors by year and country in a list. 
+
+```{r "18_5"}
+# Linear model with fixed effect and country-clustered errors
+exp_variables <- c("-1", "Recession", "pk_finhi", "pk_finlo", "c_dlrgdp", "c_dlcpi", "c_dlriy", "c_stir", "c_ltrate", "c_cay", "c_ldlrgdp", "c_ldlcpi", "c_ldlriy", "c_lstir", "c_lltrate", "c_lcay", paste("fe", 1:16, sep=""))
+
+regclus2_1 <- felm(gf(lrgdp_1 ~ {exp_variables}|0|0|iso + year), data = LP_cont_c)
+regclus2_2 <- felm(gf(lrgdp_2 ~ {exp_variables}|0|0|iso + year), data = LP_cont_c)
+regclus2_3 <- felm(gf(lrgdp_3 ~ {exp_variables}|0|0|iso + year), data = LP_cont_c)
+regclus2_4 <- felm(gf(lrgdp_4 ~ {exp_variables}|0|0|iso + year), data = LP_cont_c)
+regclus2_5 <- felm(gf(lrgdp_5 ~ {exp_variables}|0|0|iso + year), data = LP_cont_c)
+regclus2_sum <-felm(gf(lrgdp_99 ~ {exp_variables}|0|0|iso + year), data = LP_cont_c)
+
+# Save all models in a list
+model_clus2 <- list(regclus2_1, regclus2_2, regclus2_3, regclus2_4, regclus2_5, regclus2_sum)
+```
+
+**Task:** Click on **check** to have a look at the regression table.
+
+```{r "18_6",results='asis'}
+stargazer(model_clus2, 
+          type="html", 
+          title = "Normal versus financial recessions, real GDP per capita by capital ratio, with controls, full sample, standard errors clustered by country and year", 
+          dep.var.labels=c("Year 1","Year 2", "Year 3", "Year 4", "Year 5", "Sum"),  
+          keep = c("Recession", "pk_finhi", "pk_finlo"),
+          omit.stat="ser",
+          digits = 2,
+          model.numbers=FALSE)
+```
+*Figure 48: "Normal versus financial recessions, real GDP per capita by capital ratio, with controls, full sample, standard errors clustered by country and year"; Source: OnlineAppendix, A32, 2020*
+
+We can observe the same coefficients as in the baseline model. Thus, the results of the baseline model are robust against considering two clusters.
+
+### Alternative model 3: Pre-2006 sample
+
+*Jordà et al.* check the robustness of the baseline model after excluding the post-2006 data, since the results of the baseline model could be biased if the observations of the Great Recession and its aftermath are included as the economic recovery after the Great Recession is slow compared to other recessions.
+
+**Task:** Click on **check** to load the data *pre2006.rds*. 
+
+```{r "18_7"}
+# Load data
+pre2006 <- readRDS("pre2006.rds") 
+```
+
+As in the previous task, we will fit six different models with six different dependent variables: `lrgdp_1`, `lrgdp_2`, `lrgdp_3`, `lrgdp_4`,  `lrgdp_5` and `lrgdp_99`. Then we want to save all models in `model_pre2006`. 
+
+**Task:** Replace __ by the data set and press on **check**.
+
+```{r "18_8"}
+# Linear model with fixed effect and country-clustered errors
+reg_pre2006_1<- felm(gf(lrgdp_1 ~ {exp_variables}|0|0|iso), data = __)
+reg_pre2006_2 <- felm(gf(lrgdp_2 ~ {exp_variables}|0|0|iso), data = __)
+reg_pre2006_3 <- felm(gf(lrgdp_3 ~ {exp_variables}|0|0|iso), data = __)
+reg_pre2006_4 <- felm(gf(lrgdp_4 ~ {exp_variables}|0|0|iso), data = __)
+reg_pre2006_5 <- felm(gf(lrgdp_5 ~ {exp_variables}|0|0|iso), data = __)
+reg_pre2006_sum <-felm(gf(lrgdp_99 ~ {exp_variables}|0|0|iso), data = __)
+
+# Save all models in a list
+model_pre2006 <- list(reg_pre2006_1, reg_pre2006_2, reg_pre2006_3, reg_pre2006_4, reg_pre2006_5, reg_pre2006_sum)
+```
+
+**Task:** Click on **check** to have a look at the regression table.
+
+```{r "18_9",results='asis'}
+stargazer(model_pre2006, 
+          type="html", 
+          title = "Local projections using pre-2006 sample", 
+          dep.var.labels=c("Year 1","Year 2", "Year 3", "Year 4", "Year 5", "Sum"),  
+          keep = c("Recession", "pk_finhi", "pk_finlo"),
+          digits = 2,
+          omit.stat="ser",
+          model.numbers=FALSE)
+```
+*Figure 49: "Local projections using pre-2006 sample"; Source: OnlineAppendix, A34, 2020*
+
+Again, comparing this alternative model with the baseline model, we observe similar significant coefficients. We can see that economic recovery takes longer if the banking sector had a low level of capital at the beginning of a financial recession. 
+
+
+## Exercise 6 Conclusion
+
+In this problem set, we analysed the following three aspects based on a data set that covers 17 advanced economies from 1870 to 2015:
+
+- the long-run evolution of the key balance-sheet ratios:
+  - capital ratio
+  - loan-to-deposits ratio
+  - non-core ratio
+  
+- Bank capital and the risk of financial crisis
+
+- Bank capital and the severity of a financial crisis
+
+In the analysis of the long-run evolution of the capital structure, a rapid decline in the capital ratio has been observed since 1870, but after World War II the capital ratio has stabilized at a low level. Moreover, the banks’ funding structure has dramatically changed over the observation period. The loan-to-deposits ratio has increased since 1950 from 50% to nearly 120% before the Global Financial Crisis, as the share of deposits has decreased after World War II. The most interesting development in the capital structure was the increase in the non-core ratio since the 1970s, but declined after the Global Financial Crisis.
+
+As a next step, we analysed whether the structure of the liability side is related to the likelihood of systemic financial crises. The authors performed a probit regression and investigated the marginal predictive power of the key balance-sheet ratios relative to the average annual changes in credit to gross domestic product (GDP) over the previous five years. Our analysis show that the capital ratio has no predictive relationship to systemic financial crisis risk, whereas the LtD-ratio, the non-core ratio and the credit growth are significant crisis risk predictors.
+
+In the last part of the problem set, we investigated the relationship between the bank capital and the severity of a financial crisis with the Local Projections (LP) approach. The authors concluded that capital matters, since it was observed that financial crises are less severe when the capital is high. Moreover, the lower the capital ratio in bank balance sheets, the slower the start of an economic recovery. Thus, *Jordà et al.* conclude that high capital indeed plays a macroeconomically beneficial role.
+
+I hope you enjoyed solving this problem set. As a final surprise, please run the following code chunk by pressing on **check** to display all the awards you have achieved.
+
+```{r "19_1"}
+awards()
+```
+
+
+## Exercise 7 References
+
+#### Bibliography
+
+- Basel Committee on Banking Supervision. *Basel III Monitoring Report*. 2014.
+
+- Basel Committee on Banking Supervision. *Basel III: Finalising Post-Crisis Reforms*. 2017, www.bis.org/bcbs/publ/d424.pdf.
+
+- Basel Committee on Banking Supervision. *Basel III: International Framework for Liquidity Risk Measurement, Standards and Monitoring*. 2010, www.bis.org/publ/bcbs188.pdf.
+
+- Basel Committee on Banking Supervision *International Convergence of Capital Measurement and Capital Standards a Revised Framework*. 2004, www.bis.org/publ/bcbs107.pdf.
+
+- Frees, Edward W. *Longitudinal and Panel Data : Analysis and Applications in the Social Sciences*. Cambridge, Cambridge Univ. Press, 2010.
+
+- Greene, William H. *Econometric Analysis*. Upper Saddle River, N.J., Prentice-Hall, 2008.
+
+- Hill, R. Carter, et al. *Principles of Econometrics*. Hoboken, Nj, John Wiley & Sons, 2018.
+
+- History.com Editors. *Great Depression History*. History.com, A&E Television Networks, 29 Oct. 2009, www.history.com/topics/great-depression/great-depression-history.
+
+- Jarrett, F. G., and Karl A. Fox. *"Econometric Analysis for Public Policy.”* Econometrica, vol. 27, no. 4, Oct. 1959, p. 721, 10.2307/1909370. Accessed 29 July 2020.
+
+- Jordà, Òscar, et al. *“Bank Capital Redux: Solvency, Liquidity and Crisis.”* The Review of Economic Studies, 8 Aug. 2020, 10.1093/restud/rdaa040. Accessed 21 Sept. 2020.
+
+- Jordà, Òscar, et al. *“Estimation and Inference of Impulse Responses by Local Projections.”* American Economic Review, vol. 95, no. 1, 1 Feb. 2005, pp. 161–182, 10.1257/0002828053828518. Accessed 11 June 2020.
+
+- Jordà, Òscar, et al. *“Macrofinancial History and the New Business Cycle Facts.”* NBER Macroeconomics Annual, vol. 31, no. 1, Jan. 2017, pp. 213–263, 10.1086/690241.
+
+- Kindleberger, Charles P, and Jean Pierre Laffargue. *Financial Crises : Theory, History, and Policy*. Cambridge, Cambridge University Press, Cambridge University Press ; Cambridge, 2008.
+
+- Kuhn, Max, and Kjell Johnson. *Applied Predictive Modeling*. New York, Ny, Springer New York, 2013.
+
+- Lessambo, Felix I. *The U.S. Banking System : Laws, Regulations, and Risk Management*. Cham, Switzerland, Palgrave Macmillan, 2020.
+
+- Moosa, Imad A. *Good Regulation, Bad Regulation : The Anatomy of Financial Regulation*. Basingstoke, Palgrave Macmillan, 2015.
+
+- Mućk, Jakub. *Applied Econometrics (QEM) Heteroskedasticity Based on Prinicples of Econometrics*, 2018.
+
+- Oldani, Chiara, et al. *Global Financial Crisis*. Ashgate Publishing, Ltd., 28 Mar. 2013.
+
+- Paolo Savona, et al. *Global Financial Crisis : Global Impact and Solutions*. Farnham, Surrey ; Burlington, Vt, Ashgate, 2011.
+
+- Slutzky, Eugen. *“The Summation of Random Causes as the Source of Cyclic Processes.”* Econometrica, vol. 5, no. 2, Apr. 1937, p. 105, 10.2307/1907241. Accessed 25 Jan. 2021.
+
+- Weber, Axel A., and Deutsche Bundesbank. *Auf Dem Weg Zu Einem Stabileren Finanzsystem: Basel III*. 2010.
+
+- Wooldridge, Jeffrey M. *Econometric Analysis of Cross Section and Panel Data*. Cambridge, Mass., Mit, 2002.
+
+- Wooldridge, Jeffrey M. *Introductory Econometrics: A Modern Approach*. S.L., Cengage Learning, 2018.
+
+
+#### R-packages
+
+- Alan Fernihough. *mfx: Marginal Effects, Odds Ratios and Incidence Rate Ratios for GLMs.* R package version 1.2-2. https://CRAN.R-project.org/package=mfx, 2019
+
+- Baptiste Auguie. *gridExtra: Miscellaneous Functions for “Grid” Graphics.* R package version 2.3. https://CRAN.R-project.org/package=gridExtra, 2017
+
+- Gaure. *OLS with multiple high dimensional category variables. Computational Statistics &	Data Analysis*, 66:8-18, 2013
+Bonebakker et al. gplots: Various R Programming 	Tools for Plotting Data. R package 	version 3.1.3. https://CRAN.R-project.org/package=gplots, 2022
+
+- Hlavac, Marek. *stargazer: Well-Formatted Regression and Summary Statistics Tables.* R	package version 5.2.3. https://CRAN.R-project.org/package=stargazer, 2022
+
+- Jeffrey B. Arnold. *ggthemes: Extra Themes, Scales and Geoms for ‘ggplot2’.* R 	package	 version 4.2.4. https://CRAN.R-project.org/package=ggthemes, 2021
+
+- Leifeld, Philip. *texreg: Conversion of Statistical Model Output in R to LaTeX and HTML Tables.* Journal of Statistical Software, 55(8), 1-24. URL 	http://dx.doi.org/10.18637/jss.v055.i08., 2013
+
+- R Core Team R. *A language and environment for statistical computing.* R 	Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-	project.org/., 2021
+
+- Kranz, Sebastian.*glueformula: String interpolation to build regression formulas.* R package version 0.1.0., 2020
+Wickham et al. Welcome to the tidyverse. Journal of Open Source Software, 4(43), 	1686, https://doi.org/10.21105/joss.01686, 2019
+
+- Hainard et al. *pROC: an open-source package for R and S+ to analyze and compare ROC curves.* BMC Bioinformatics, 12, p. 77. DOI:	10.1186/1471-2105-12-77 	http://www.biomedcentral.com/1471-2105/12/77/, 2011
+
+

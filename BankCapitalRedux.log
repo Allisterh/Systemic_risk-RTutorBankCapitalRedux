@@ -1,0 +1,10 @@
+{"type":["init_ps"],"time":["2022-11-28 14:46:59"],"user":["Thanusaa Kanagasingam"],"umph":[1669643219.5012],"ok":[true]}
+,
+{"type":["check_chunk"],"time":["2022-11-28 14:48:10"],"user":["Thanusaa Kanagasingam"],"umph":[1669643290.7781],"ok":[false],"chunk":[1],"ex":[2],"e.ind":[0],"code":["# Load bankdata.rds with readRDS() and assign to bankdata\nbankdata <- readRDS(\"Bankdata.rds\")"],"message":["evaluation error in \n  bankdata <- readRDS(\"Bankdata.rds\")\n  Error in gzfile(file, \"rb\"): kann Verbindung nicht öffnen\n"]}
+,
+{"type":["check_chunk"],"time":["2022-11-28 14:48:32"],"user":["Thanusaa Kanagasingam"],"umph":[1669643312.1415],"ok":[true],"chunk":[71],"ex":[15],"e.ind":[0],"code":["bankdata <- readRDS(\"Bankdata.rds\")"],"message":[""]}
+,
+{"type":["check_chunk"],"time":["2022-11-28 14:48:33"],"user":["Thanusaa Kanagasingam"],"umph":[1669643313.0284],"ok":[false],"chunk":[72],"ex":[15],"e.ind":[0],"code":["#Sample solution\nggplot(bankdata, aes(year, lrgdp, color = country)) +\n  geom_line() +\n  ylab(\"Real GDP per capita (%)\") +\n  ggtitle(\"Real GDP per capita by country, full sample\") +\n  scale_x_continuous(limits = c(1870, 2015)) +\n  guides(color = guide_legend(ncol = 2, byrow = TRUE)) +\n  theme_bw()"],"message":["evaluation error in \n  ggplot(bankdata, aes(year, lrgdp, color = country)) + geom_line() + ylab(\"Real GDP per capita (%)\") + ggtitle(\"Real GDP per capita by country, full sample\") + scale_x_continuous(limits = c(1870, 2015)) + guides(color = guide_legend(ncol = 2, byrow = TRUE)) + theme_bw()\n  Error in ggplot(bankdata, aes(year, lrgdp, color = country)): konnte Funktion \"ggplot\" nicht finden\n"]}
+,
+{"type":["check_chunk"],"time":["2022-11-28 14:48:41"],"user":["Thanusaa Kanagasingam"],"umph":[1669643321.7311],"ok":[true],"chunk":[79],"ex":[17],"e.ind":[0],"code":["# Load data\nLP_cont <- readRDS(\"LP_cont.rds\")"],"message":[""]}
+,
